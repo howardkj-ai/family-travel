@@ -3,48 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚆 鐵道大冒險 v4.0</title>
+    <title>🚆 鐵道大冒險 v4.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #1a1008; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; }
-        body { background: var(--bg); color: #1a1008; font-family: 'Noto Serif TC', serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; min-height: 100vh; overflow-x: hidden; }
-        .header { text-align: center; margin-bottom: 15px; }
-        .header h1 { font-size: 1.8rem; color: var(--paper); margin: 0; letter-spacing: 0.15em; }
+        :root { --bg: #2a1800; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; }
+        body { background: var(--bg); color: #1a1008; font-family: 'Noto Serif TC', serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; min-height: 100vh; }
+        .header { text-align: center; margin-bottom: 12px; color: var(--paper); }
+        .header h1 { font-size: 1.8rem; margin: 0; letter-spacing: 0.15em; }
         
-        /* Wheel Control */
+        /* Wheel */
         .wheel-wrap { position: relative; margin-bottom: 20px; }
-        #wheelCanvas { border-radius: 50%; box-shadow: 0 0 0 4px var(--accent), 0 10px 50px rgba(0,0,0,0.8); transition: transform 0.1s linear; }
-        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; width: 30px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+        #wheelCanvas { border-radius: 50%; box-shadow: 0 0 0 4px var(--accent), 0 10px 40px rgba(0,0,0,0.6); }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; width: 30px; }
 
         /* Buttons */
-        .btn-row { display: flex; gap: 12px; margin-bottom: 20px; }
-        button { padding: 15px 25px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); active { transform: scale(0.95); } }
-        #actionBtn { background: linear-gradient(135deg, #d4580a, #f07a2a); color: white; min-width: 140px; }
-        #actionBtn.stop { background: linear-gradient(135deg, #b52a1e, #e74c3c); }
+        .btn-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { padding: 12px 24px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 1rem; transition: 0.2s; }
+        #actionBtn { background: linear-gradient(135deg, #d4580a, #f07a2a); color: white; min-width: 120px; }
+        #actionBtn.stop { background: #b52a1e; }
 
-        /* Result Card */
-        #resultCard { width: 100%; max-width: 400px; background: var(--paper); border-radius: 15px; padding: 25px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); display: none; animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .station-title { border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; margin-bottom: 15px; }
-        .station-name { font-size: 3rem; font-weight: 900; margin: 0; line-height: 1; }
-        .station-jp { font-size: 1rem; color: var(--accent); opacity: 0.7; font-weight: bold; }
+        /* Card System */
+        #resultCard { width: 100%; max-width: 400px; background: var(--paper); border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; }
+        .station-header { border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; margin-bottom: 15px; }
+        .station-name { font-size: 2.8rem; font-weight: 900; margin: 0; line-height: 1; }
+        .station-jp { color: var(--accent); font-weight: bold; margin-bottom: 5px; }
         
-        /* Mission System */
-        .mission-area { margin-top: 20px; }
-        .mission-step { background: rgba(0,0,0,0.05); border: 1px dashed rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-bottom: 10px; position: relative; }
-        .mission-step.locked { opacity: 0.3; filter: grayscale(1); }
-        .mission-tag { font-size: 0.6rem; color: var(--accent); font-weight: 900; margin-bottom: 5px; display: block; }
-        .mission-text { font-size: 1rem; font-weight: 700; }
-        .next-btn { background: var(--green); color: white; font-size: 0.8rem; padding: 5px 12px; border-radius: 4px; margin-top: 10px; }
-
-        .food-tag { display: inline-block; background: #e8c97a; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; font-weight: 900; }
+        /* Mission UI */
+        #missionTrigger { width: 100%; background: var(--accent); color: white; margin-top: 15px; padding: 15px; font-size: 1.1rem; }
+        #missionDisplay { display: none; margin-top: 20px; }
+        .mission-step { background: rgba(0,0,0,0.04); border-left: 4px solid var(--accent); padding: 12px; margin-bottom: 10px; border-radius: 4px; }
+        .mission-tag { font-size: 0.7rem; color: var(--accent); font-weight: 900; }
+        .mission-text { display: block; font-size: 1rem; font-weight: 700; margin-top: 4px; }
+        .complete-btn { background: var(--green); color: white; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; margin-top: 8px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>🚆 鐵道大冒險</h1>
-        <p style="color:var(--paper); opacity:0.5; font-size:0.7rem;">VERSION 4.0 - INTERACTIVE MODE</p>
+        <p style="opacity:0.5; font-size:0.7rem; font-family:monospace;">STATION TRIGGER v4.2</p>
     </div>
 
     <div class="wheel-wrap">
@@ -57,133 +54,123 @@
     </div>
 
     <div id="resultCard">
-        <div class="station-title">
-            <div id="resName" class="station-name"></div>
+        <div class="station-header">
             <div id="resJp" class="station-jp"></div>
-            <div id="resDesc" style="font-size:0.85rem; margin-top:8px; opacity:0.8;"></div>
-            <div id="resFood" class="food-tag"></div>
+            <div id="resName" class="station-name"></div>
+            <div id="resFood" style="color:var(--green); font-size:0.85rem; font-weight:bold; margin-top:10px;"></div>
         </div>
 
-        <div class="mission-area">
-            <div id="m1" class="mission-step">
-                <span class="mission-tag">STEP 1: 初來乍到</span>
+        <button id="missionTrigger" onclick="startMissions()">📜 領取冒險任務</button>
+
+        <div id="missionDisplay">
+            <div class="mission-step" id="step1Box">
+                <span class="mission-tag">第一階段：初來乍到</span>
                 <span id="t1" class="mission-text"></span>
-                <br><button class="next-btn" onclick="nextMission(2)">完成任務</button>
+                <button class="complete-btn" onclick="nextStep(2)">完成任務</button>
             </div>
-            <div id="m2" class="mission-step locked">
-                <span class="mission-tag">STEP 2: 深度探索</span>
-                <span id="t2" class="mission-text">解鎖後顯示</span>
-                <br><button id="b2" class="next-btn" style="display:none" onclick="nextMission(3)">完成任務</button>
-            </div>
-            <div id="m3" class="mission-step locked">
-                <span class="mission-tag">STEP 3: 完美句點</span>
-                <span id="t3" class="mission-text">解鎖後顯示</span>
-                <br><button id="b3" class="next-btn" style="display:none" onclick="location.reload()">收集成功！</button>
+            <div class="mission-step" id="step2Box" style="opacity:0.3">
+                <span class="mission-tag">第二階段：深度探索</span>
+                <span id="t2" class="mission-text">—— 尚未解鎖 ——</span>
+                <button id="b2" class="complete-btn" style="display:none" onclick="nextStep(3)">完成任務</button>
             </div>
         </div>
     </div>
 
     <script>
         const STATIONS = [
-            { name: "瑞芳", jp: "ルイファン", desc: "九份與平溪線的重要門戶，充滿礦業氛圍。", food: "推薦：龍鳳腿、熱油麻糬" },
-            { name: "侯硐", jp: "ホウトン", desc: "著名的貓村，這裡的礦坑隧道值得一看。", food: "推薦：大麵章、古早味麵店" },
-            { name: "十分", jp: "シーフェン", desc: "鐵軌就在家門口，著名的放天燈聖地。", food: "推薦：周氏蝦捲、花生捲冰淇淋" },
-            { name: "礁溪", jp: "ジャオシー", desc: "一出站就能泡腳，宜蘭最方便的溫泉鄉。", food: "推薦：蔥油餅、奶凍捲" },
-            { name: "福隆", jp: "フロン", desc: "最經典的鐵路便當與金黃色沙灘。", food: "推薦：正宗福隆便當、石花凍" }
-            // ... 可再自行增加車站
+            { name: "瑞芳", jp: "ルイファン", food: "龍鳳腿、熱油麻糬" },
+            { name: "侯硐", jp: "ホウトン", food: "大麵章、古早味麵店" },
+            { name: "十分", jp: "シーフェン", food: "周氏蝦捲、花生捲冰淇淋" },
+            { name: "福隆", jp: "フロン", food: "正宗福隆便當、石花凍" },
+            { name: "礁溪", jp: "ジャオシー", food: "蔥油餅、奶凍捲" },
+            { name: "平溪", jp: "ピンシー", food: "天燈餅、古早味麵茶" },
+            { name: "菁桐", jp: "セイトウ", food: "楊家雞捲、礦工食堂" },
+            { name: "內灣", jp: "ナイワン", food: "野薑花粽、客家擂茶" },
+            { name: "三義", jp: "サンイー", food: "客家板條、木雕餅" },
+            { name: "大里", jp: "ダイリ", food: "現撈海鮮、石花菜" },
+            { name: "合興", jp: "コウキョウ", food: "愛情火車下午茶" },
+            { name: "崎頂", jp: "キチョウ", food: "海邊小食、西瓜" },
+            { name: "談文", jp: "ダンブン", food: "在地小農乾貨" },
+            { name: "三坑", jp: "サンコウ", food: "客家菜包、牛汶水" },
+            { name: "富岡", jp: "フコウ", food: "仙草加工品、豬腳" }
         ];
 
         const MISSION_POOL = {
-            step1: ["找出車站的站牌並全家合照 📸", "在車站大廳找出這站的歷史看板 📖", "詢問站務員這站最有名的地標 🚉"],
-            step2: ["找出巷弄內的三家特色小店 🏚️", "觀察這站建築物最古老的部分 🏠", "找一條沒走過的小路探索 🛤️"],
-            step3: ["買一樣當地特色的伴手禮 🛍️", "寫下一句今天最想記住的話 ✍️", "全家票選今天最美的風景瞬間 🌅"]
+            s1: ["找出車站的站牌合照 📸", "在車站大廳找歷史看板 📖", "找站務員問地標 🚉"],
+            s2: ["找三家在地老店 🏚️", "找建築最古老的部分 🏠", "走一條沒走過的小路 🛤️"]
         };
 
-        let angle = 0;
-        let speed = 0;
-        let state = "IDLE"; // IDLE, SPINNING, SLOWING
+        let angle = 0, speed = 0, state = "IDLE";
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
-        const actionBtn = document.getElementById('actionBtn');
 
         function draw() {
             const r = canvas.width / 2;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const slice = (Math.PI * 2) / STATIONS.length;
-
             STATIONS.forEach((st, i) => {
                 const start = angle + i * slice - Math.PI/2;
                 ctx.beginPath();
-                ctx.moveTo(r, r);
-                ctx.arc(r, r, r - 5, start, start + slice);
+                ctx.moveTo(r, r); ctx.arc(r, r, r - 5, start, start + slice);
                 ctx.fillStyle = i % 2 ? "#e8c97a" : "#d4a84b";
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.save();
-                ctx.translate(r, r);
-                ctx.rotate(start + slice/2 + Math.PI/2);
-                ctx.fillStyle = "#1a1008";
-                ctx.font = "bold 16px serif";
-                ctx.textAlign = "center";
-                ctx.fillText(st.name, 0, -r * 0.7);
-                ctx.restore();
+                ctx.fill(); ctx.stroke();
+                ctx.save(); ctx.translate(r, r); ctx.rotate(start + slice/2 + Math.PI/2);
+                ctx.fillStyle = "#1a1008"; ctx.font = "bold 13px serif"; ctx.textAlign = "center";
+                ctx.fillText(st.name, 0, -r * 0.7); ctx.restore();
             });
         }
 
         function update() {
-            if (state === "SPINNING") {
-                angle += speed;
-            } else if (state === "SLOWING") {
-                speed *= 0.985;
-                angle += speed;
-                if (speed < 0.002) {
-                    state = "IDLE";
-                    finishSpin();
-                }
+            if (state === "SPINNING") angle += speed;
+            else if (state === "SLOWING") {
+                speed *= 0.985; angle += speed;
+                if (speed < 0.002) { state = "IDLE"; finish(); }
             }
-            draw();
-            requestAnimationFrame(update);
+            draw(); requestAnimationFrame(update);
         }
 
-        actionBtn.onclick = () => {
+        document.getElementById('actionBtn').onclick = function() {
             if (state === "IDLE") {
-                state = "SPINNING";
-                speed = 0.15 + Math.random() * 0.1;
-                actionBtn.innerText = "🛑 停！";
-                actionBtn.classList.add("stop");
+                state = "SPINNING"; speed = 0.2;
+                this.innerText = "🛑 停！"; this.classList.add("stop");
                 document.getElementById('resultCard').style.display = 'none';
             } else if (state === "SPINNING") {
-                state = "SLOWING";
-                actionBtn.style.display = "none";
+                state = "SLOWING"; this.style.display = "none";
             }
         };
 
-        function finishSpin() {
+        function finish() {
             const stopAngle = ((-angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
             const idx = Math.floor(stopAngle / ((Math.PI * 2) / STATIONS.length));
             const st = STATIONS[idx];
-
             document.getElementById('resultCard').style.display = 'block';
             document.getElementById('resName').innerText = st.name;
             document.getElementById('resJp').innerText = st.jp;
-            document.getElementById('resDesc').innerText = st.desc;
-            document.getElementById('resFood').innerText = st.food;
-            
-            // 初始化任務
-            document.getElementById('t1').innerText = MISSION_POOL.step1[Math.floor(Math.random()*MISSION_POOL.step1.length)];
-            window.currentSt = st;
+            document.getElementById('resFood').innerText = "🍱 推薦美食：" + st.food;
+            document.getElementById('missionTrigger').style.display = "block";
+            document.getElementById('missionDisplay').style.display = "none";
+            document.getElementById('actionBtn').style.display = "inline-block";
+            document.getElementById('actionBtn').innerText = "🎲 再次轉動";
+            document.getElementById('actionBtn').classList.remove("stop");
         }
 
-        window.nextMission = (step) => {
+        window.startMissions = function() {
+            document.getElementById('missionTrigger').style.display = "none";
+            document.getElementById('missionDisplay').style.display = "block";
+            document.getElementById('t1').innerText = MISSION_POOL.s1[Math.floor(Math.random()*3)];
+            // 重置第二階段
+            document.getElementById('step2Box').style.opacity = "0.3";
+            document.getElementById('t2').innerText = "—— 尚未解鎖 ——";
+            document.getElementById('b2').style.display = "none";
+        };
+
+        window.nextStep = function(step) {
             if(step === 2) {
-                document.getElementById('m2').classList.remove('locked');
-                document.getElementById('t2').innerText = MISSION_POOL.step2[Math.floor(Math.random()*MISSION_POOL.step2.length)];
+                document.getElementById('step2Box').style.opacity = "1";
+                document.getElementById('t2').innerText = MISSION_POOL.s2[Math.floor(Math.random()*3)];
                 document.getElementById('b2').style.display = "inline-block";
-            } else if(step === 3) {
-                document.getElementById('m3').classList.remove('locked');
-                document.getElementById('t3').innerText = MISSION_POOL.step3[Math.floor(Math.random()*MISSION_POOL.step3.length)];
-                document.getElementById('b3').style.display = "inline-block";
+            } else {
+                alert("🎉 本站任務達成！");
             }
         };
 
