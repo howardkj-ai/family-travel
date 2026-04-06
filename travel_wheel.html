@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚆 家庭抽站旅行 v3.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #2a1800; --paper: #f5ead6; --accent: #d4580a; }
+        body { background: var(--bg); color: #1a1008; font-family: 'Noto Serif TC', serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; min-height: 100vh; }
+        .header { text-align: center; margin-bottom: 12px; }
+        .header h1 { font-size: 1.8rem; color: var(--paper); margin: 0; letter-spacing: 0.15em; }
+        .header p { font-size: 0.6rem; color: var(--paper); opacity: 0.4; font-family: monospace; margin: 4px 0; }
+        
+        /* Wheel */
+        .wheel-wrap { position: relative; margin-bottom: 20px; }
+        #wheelCanvas { border-radius: 50%; box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 4px var(--accent); max-width: 100%; height: auto; }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; width: 28px; }
+
+        /* Controls */
+        .btn-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        button { padding: 12px 20px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-family: inherit; transition: 0.2s; }
+        #spinBtn { background: linear-gradient(135deg, #d4580a, #f07a2a); color: white; min-width: 100px; }
+        #resetBtn { background: rgba(245,234,214,0.1); color: var(--paper); border: 1px solid rgba(245,234,214,0.2); }
+        
+        /* Card */
+        #resultCard { width: 100%; maxWidth: 380px; background: var(--paper); border-radius: 10px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: none; }
+        .station-name { font-size: 2.5rem; font-weight: 900; line-height: 1; margin: 5px 0; }
+        .badge { display: inline-block; padding: 2px 8px; color: white; font-size: 0.7rem; border-radius: 2px; }
+        .mission-box { background: rgba(26,16,8,0.05); padding: 10px; border-left: 4px solid var(--accent); margin-top: 10px; font-weight: 700; }
+        .visited-strip { margin-top: 20px; width: 100%; max-width: 380px; color: var(--paper); opacity: 0.8; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🚆 家庭抽站旅行</h1>
+        <p>FAMILY TRAIN ADVENTURE v3.0 (Offline Mode)</p>
+    </div>
+
+    <div class="wheel-wrap">
+        <svg class="pointer" viewBox="0 0 28 36"><polygon points="14,34 2,4 26,4" fill="#d4580a" stroke="#2a1800" stroke-width="2"/></svg>
+        <canvas id="wheelCanvas" width="320" height="320"></canvas>
+    </div>
+
+    <div class="btn-row">
+        <button id="spinBtn">🎲 轉！</button>
+        <button id="resetBtn">↺ 重置</button>
+    </div>
+
+    <div id="resultCard">
+        <span id="diffBadge" class="badge"></span>
+        <div class="station-name" id="resName"></div>
+        <div id="resEn" style="color:var(--accent); font-family:monospace; margin-bottom:10px;"></div>
+        <div style="font-size:0.8rem; margin-bottom:10px;" id="resTags"></div>
+        <hr style="opacity:0.1">
+        <div style="font-size:0.6rem; color:var(--accent); letter-spacing:2px;">TARGET MISSION</div>
+        <div id="resMission" class="mission-box"></div>
+    </div>
+
+    <div class="visited-strip">
+        已探索：<span id="visitedCount">0</span>/15
+        <div id="visitedList" style="margin-top:5px; display:flex; gap:5px; flex-wrap:wrap;"></div>
+    </div>
+
+    <script>
+        const STATIONS = [
+            { name: "瑞芳", en: "Ruifang", diff: "EASY", tags: ["礦山","轉車方便"], color: "#e8c97a" },
+            { name: "侯硐", en: "Houtong", diff: "EASY", tags: ["貓村","礦坑"], color: "#d4a84b" },
+            { name: "十分", en: "Shifen", diff: "EASY", tags: ["老街","瀑布"], color: "#c49040" },
+            { name: "福隆", en: "Fulong", diff: "EASY", tags: ["海邊","沙灘"], color: "#dbb96a" },
+            { name: "礁溪", en: "Jiaoxi", diff: "EASY", tags: ["溫泉","老街"], color: "#f0d08a" },
+            { name: "平溪", en: "Pingxi", diff: "MEDIUM", tags: ["山城","天燈"], color: "#e0b85a" },
+            { name: "菁桐", en: "Jingtong", diff: "MEDIUM", tags: ["老車站","礦村"], color: "#caa050" },
+            { name: "內灣", en: "Neiwan", diff: "MEDIUM", tags: ["老街","客家"], color: "#ba8838" },
+            { name: "三義", en: "Sanyi", diff: "MEDIUM", tags: ["木雕","山城"], color: "#d8b060" },
+            { name: "大里", en: "Dali", diff: "MEDIUM", tags: ["海邊","岩岸"], color: "#ead07e" },
+            { name: "合興", en: "Hexing", diff: "ADVENTURE", tags: ["愛情車站"], color: "#c09038" },
+            { name: "崎頂", en: "Qiding", diff: "ADVENTURE", tags: ["隧道","海景"], color: "#d4a84b" },
+            { name: "談文", en: "Tanwen", diff: "ADVENTURE", tags: ["冷門","日式"], color: "#e2c070" },
+            { name: "三坑", en: "Sankeng", diff: "ADVENTURE", tags: ["客家","老屋"], color: "#b88030" },
+            { name: "富岡", en: "Fugang", diff: "ADVENTURE", tags: ["糯米橋"], color: "#cc9848" }
+        ];
+
+        const MISSIONS = ["拍三種不同姿勢的照片 📸", "找這裡最老的建築 🏚️", "問在地人：這裡哪裡好玩？🗣️", "買一樣從沒買過的東西 🛍️", "找一個可以安靜坐的地方 🪑"];
+        const DIFF_LABEL = { EASY: "輕鬆", MEDIUM: "中等", ADVENTURE: "小冒險" };
+        const DIFF_COLOR = { EASY: "#2e7d32", MEDIUM: "#e06000", ADVENTURE: "#b52a1e" };
+
+        let angle = 0;
+        let isSpinning = false;
+        let visited = JSON.parse(localStorage.getItem('visited_train')) || [];
+
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+
+        function drawWheel() {
+            const r = canvas.width / 2;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const slice = (Math.PI * 2) / STATIONS.length;
+
+            STATIONS.forEach((st, i) => {
+                const start = angle + i * slice - Math.PI/2;
+                ctx.beginPath();
+                ctx.moveTo(r, r);
+                ctx.arc(r, r, r - 5, start, start + slice);
+                ctx.fillStyle = visited.includes(st.name) ? "#8a7a60" : st.color;
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(r, r);
+                ctx.rotate(start + slice/2 + Math.PI/2);
+                ctx.fillStyle = "#2a1200";
+                ctx.font = "bold 13px serif";
+                ctx.textAlign = "center";
+                ctx.fillText(st.name, 0, -r * 0.7);
+                ctx.restore();
+            });
+        }
+
+        function spin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            document.getElementById('resultCard').style.display = 'none';
+            
+            let speed = 0.2 + Math.random() * 0.2;
+            const friction = 0.985;
+            
+            function animate() {
+                speed *= friction;
+                angle += speed;
+                drawWheel();
+
+                if (speed < 0.002) {
+                    isSpinning = false;
+                    const stopAngle = ((-angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+                    const idx = Math.floor(stopAngle / ((Math.PI * 2) / STATIONS.length));
+                    showResult(STATIONS[idx]);
+                    return;
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        function showResult(st) {
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('resName').innerText = st.name;
+            document.getElementById('resEn').innerText = st.en;
+            document.getElementById('resMission').innerText = MISSIONS[Math.floor(Math.random()*MISSIONS.length)];
+            const badge = document.getElementById('diffBadge');
+            badge.innerText = DIFF_LABEL[st.diff];
+            badge.style.background = DIFF_COLOR[st.diff];
+            
+            if(!visited.includes(st.name)) {
+                visited.push(st.name);
+                localStorage.setItem('visited_train', JSON.stringify(visited));
+                updateVisited();
+            }
+        }
+
+        function updateVisited() {
+            document.getElementById('visitedCount').innerText = visited.length;
+            document.getElementById('visitedList').innerHTML = visited.map(v => `<span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:10px;">✓ ${v}</span>`).join('');
+            drawWheel();
+        }
+
+        spinBtn.onclick = spin;
+        document.getElementById('resetBtn').onclick = () => { if(confirm('重置進度？')){ visited=[]; localStorage.clear(); updateVisited(); } };
+        
+        updateVisited();
+        drawWheel();
+    </script>
+</body>
+</html>
