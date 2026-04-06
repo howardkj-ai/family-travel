@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚆 鐵道冒險 LifeOS v4.8</title>
+    <title>🚆 鐵道冒險 LifeOS v4.9</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #1a1008; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; --blue: #3498db; }
@@ -11,7 +11,6 @@
         .header { text-align: center; color: var(--paper); margin-bottom: 15px; }
         .header h1 { font-size: 1.6rem; margin: 0; letter-spacing: 0.1em; }
         
-        /* Wheel Container */
         .wheel-wrap { position: relative; margin-bottom: 20px; }
         #wheelCanvas { border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 0 4px var(--accent); }
         .pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 10; width: 25px; }
@@ -20,33 +19,37 @@
         #actionBtn { background: linear-gradient(135deg, #d4580a, #f07a2a); color: white; min-width: 130px; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         #actionBtn.stop { background: #c0392b; }
 
-        /* Card System */
         #resultCard { width: 100%; max-width: 400px; background: var(--paper); border-radius: 15px; padding: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); display: none; margin-top: 10px; border-top: 10px solid var(--accent); }
         .station-name { font-size: 2.8rem; font-weight: 900; margin: 5px 0; line-height: 1.1; }
         
-        /* Weather Bar */
         .weather-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: rgba(0,0,0,0.05); padding: 8px 12px; border-radius: 10px; }
         .weather-selector { display: flex; gap: 5px; }
         .w-btn { font-size: 0.75rem; padding: 6px 12px; background: #ddd; border-radius: 6px; border: 1px solid #ccc; }
         .w-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
-        .search-hint { font-size: 0.7rem; color: var(--blue); text-decoration: none; font-weight: 900; display: flex; align-items: center; gap: 4px; }
+        .search-hint { font-size: 0.7rem; color: var(--blue); text-decoration: none; font-weight: 900; }
         
-        /* Mission UI */
-        .mission-step { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .mission-step { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .mission-text { font-size: 0.95rem; font-weight: 700; display: block; margin: 5px 0; color: #333; }
         
-        /* Collection Wall */
         .record-wall { width: 100%; max-width: 400px; margin-top: 30px; color: var(--paper); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; text-align: center; }
         .badges-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
-        .badge-done { background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.2); }
+        
+        /* 徽章樣式優化：可點擊刪除 */
+        .badge-item { background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.2s; position: relative; }
+        .badge-item:active { transform: scale(0.9); background: rgba(192, 57, 43, 0.5); }
+        .badge-item::after { content: '✕'; position: absolute; top: -5px; right: -5px; background: #c0392b; color: white; width: 14px; height: 14px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; opacity: 0; }
+        .badge-item:hover::after { opacity: 1; }
+
+        .all-stations-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 20px; opacity: 0.4; }
+        .st-tag { font-size: 0.6rem; padding: 2px 6px; border: 1px solid #999; border-radius: 3px; cursor: pointer; }
+        .st-tag.done { background: var(--accent); color: white; border-color: var(--accent); opacity: 1; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>🚆 鐵道大冒險</h1>
-        <div id="stats" style="font-size:0.6rem; opacity:0.5; letter-spacing: 1px;">ADVENTURE LOG: 0 / 15</div>
+        <div id="stats" style="font-size:0.6rem; opacity:0.5; letter-spacing: 1px;">PROGRESS: 0 / 15</div>
     </div>
 
     <div class="wheel-wrap">
@@ -62,23 +65,25 @@
                 <button id="wSunny" class="w-btn active" onclick="setWeather('sunny')">☀️ 晴天</button>
                 <button id="wRainy" class="w-btn" onclick="setWeather('rainy')">🌧️ 雨天</button>
             </div>
-            <a id="weatherSearch" href="#" target="_blank" class="search-hint">🔍 查即時天氣</a>
+            <a id="weatherSearch" href="#" target="_blank" class="search-hint">🔍 查氣象</a>
         </div>
-
         <div id="resName" class="station-name"></div>
         <div id="resInfo" style="font-size:0.8rem; color:var(--accent); font-weight:bold; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;"></div>
-        
         <div id="missionArea">
             <div id="missionContainer"></div>
-            <button onclick="drawNewMission()" style="width:100%; background:var(--blue); color:white; margin-top:10px; border-radius:8px; box-shadow: 0 4px 0 #2980b9;">➕ 再抽一個任務</button>
-            <button onclick="saveAndFinish()" style="width:100%; background:var(--green); color:white; margin-top:15px; border-radius:8px; box-shadow: 0 4px 0 #1e5624;">✅ 結束並存檔</button>
+            <button onclick="drawNewMission()" style="width:100%; background:var(--blue); color:white; margin-top:10px; border-radius:8px;">➕ 再抽任務</button>
+            <button onclick="saveAndFinish()" style="width:100%; background:var(--green); color:white; margin-top:15px; border-radius:8px;">✅ 完成本站挑戰</button>
         </div>
     </div>
 
     <div class="record-wall">
-        <div style="font-size:0.7rem; letter-spacing:2px; opacity:0.6; font-weight:900;">COLLECTED STATIONS</div>
+        <div style="font-size:0.7rem; letter-spacing:2px; opacity:0.6; font-weight:900;">COLLECTED STATIONS (點擊站名可刪除)</div>
         <div id="badges" class="badges-container"></div>
-        <button onclick="clearRecords()" style="margin-top:30px; font-size:0.6rem; background:none; color:white; opacity:0.2;">RESET ALL DATA</button>
+        
+        <div style="margin-top:40px; font-size:0.7rem; letter-spacing:2px; opacity:0.6; font-weight:900;">QUICK MANAGE (手動開關站點)</div>
+        <div id="allStations" class="all-stations-list"></div>
+        
+        <button onclick="clearRecords()" style="margin-top:30px; font-size:0.6rem; background:none; color:white; opacity:0.2;">HARD RESET EVERYTHING</button>
     </div>
 
     <script>
@@ -94,9 +99,9 @@
         ];
 
         const MISSION_DB = {
-            sunny: ["找陽光灑落處拍張全家福 ☀️", "尋找當地最色彩鮮豔的建築門窗 🎨", "買冰品/涼飲並與車站合影 🍦", "找出街頭上的影子藝術並拍下來 👤", "找一個能看見遠方山稜線的視角 ⛰️"],
-            rainy: ["在車站靜靜聽雨聲 30 秒 🌧️", "找一家有屋簷的老店觀察雨中街景 ☔", "尋找雨天限定的倒影拍一張照 📸", "在車站內找一個最溫馨的角落合照 ☕", "觀察雨滴在不同材質表面跳動的樣子 💧"],
-            general: ["模仿站牌上的姿勢/文字拍照 🕺", "問在地人：附近哪裡風景/食物最推？🗣️", "收集一張當地特色的傳單或店名片 🎫", "找出車站內最老的一個物件/時鐘 ⏰", "找出這裡最有趣的一個路標名稱 📍", "找一個從未見過的建築裝飾拍下來 🏠", "全家在出入口拍一張挑戰成功合照 👨‍👩‍👧‍👦", "找出這站歷史最悠久的解說牌 📜"]
+            sunny: ["找陽光灑落處拍張全家福 ☀️", "尋找當地最色彩鮮豔的建築門窗 🎨", "買冰品/涼飲並與車站合影 🍦", "找出街頭上的影子藝術並拍下來 👤"],
+            rainy: ["在車站靜靜聽雨聲 30 秒 🌧️", "找一家有屋簷的老店觀察雨中街景 ☔", "尋找雨天限定的倒影拍一張照 📸", "觀察雨滴在不同材質表面跳動的樣子 💧"],
+            general: ["模仿站牌姿勢拍照 🕺", "問在地人：附近風景/食物最推？🗣️", "收集當地特色傳單或名片 🎫", "找出車站內最老的一個物件 ⏰", "找出有趣路標名稱 📍", "全家在出入口拍挑戰成功合照 👨‍👩‍👧‍👦"]
         };
 
         let angle = 0, speed = 0, state = "IDLE", currentSt = null, currentWeather = 'sunny';
@@ -107,8 +112,7 @@
         const ctx = canvas.getContext('2d');
 
         function draw() {
-            const r = canvas.width / 2;
-            ctx.clearRect(0,0,300,300);
+            const r = canvas.width / 2; ctx.clearRect(0,0,300,300);
             const slice = (Math.PI*2)/STATIONS.length;
             STATIONS.forEach((st, i) => {
                 const s = angle + i*slice - Math.PI/2;
@@ -122,11 +126,7 @@
         }
 
         document.getElementById('actionBtn').onclick = function() {
-            if(state==="IDLE"){ 
-                state="SPINNING"; speed=0.25; 
-                this.innerText="🛑 停！"; this.classList.add("stop"); 
-                document.getElementById('resultCard').style.display='none'; 
-            }
+            if(state==="IDLE"){ state="SPINNING"; speed=0.25; this.innerText="🛑 停！"; document.getElementById('resultCard').style.display='none'; }
             else if(state==="SPINNING"){ state="SLOWING"; this.style.display="none"; }
         };
 
@@ -140,60 +140,64 @@
             const stopAngle = ((-angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
             const idx = Math.floor(stopAngle / ((Math.PI * 2) / STATIONS.length));
             currentSt = STATIONS[idx];
-
             document.getElementById('resultCard').style.display = 'block';
             document.getElementById('resName').innerText = currentSt.name;
-            document.getElementById('resInfo').innerText = `📍 ${currentSt.city} · 🍱 ${currentSt.food} · 🕒 車程 ${currentSt.time}`;
-            
-            // 更新搜尋連結
+            document.getElementById('resInfo').innerText = `📍 ${currentSt.city} · 🍱 ${currentSt.food}`;
             document.getElementById('weatherSearch').href = `https://www.google.com/search?q=${currentSt.name}天氣`;
-            
             document.getElementById('missionContainer').innerHTML = "";
-            activeTasks = [];
-            drawNewMission(); 
-
+            activeTasks = []; drawNewMission();
             document.getElementById('actionBtn').style.display="inline-block";
             document.getElementById('actionBtn').innerText="🎲 再次旋轉";
-            document.getElementById('actionBtn').classList.remove("stop");
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
 
-        window.setWeather = function(type) {
-            currentWeather = type;
-            document.getElementById('wSunny').classList.toggle('active', type==='sunny');
-            document.getElementById('wRainy').classList.toggle('active', type==='rainy');
+        window.toggleStation = function(name) {
+            const index = history.indexOf(name);
+            if (index > -1) history.splice(index, 1);
+            else history.push(name);
+            localStorage.setItem('vfx_travel_history', JSON.stringify(history));
+            updateUI();
         };
 
         window.drawNewMission = function() {
             const pool = [...MISSION_DB.general, ...MISSION_DB[currentWeather]];
             let task = pool[Math.floor(Math.random()*pool.length)];
-            if(activeTasks.includes(task) && activeTasks.length < pool.length) return drawNewMission();
+            if(activeTasks.includes(task)) return drawNewMission();
             activeTasks.push(task);
-
             const div = document.createElement('div');
             div.className = "mission-step";
-            div.innerHTML = `<span style="font-size:0.6rem; color:var(--accent); font-weight:900;">GOAL ${activeTasks.length}</span><span class="mission-text">${task}</span>`;
+            div.innerHTML = `<span class="mission-text">${task}</span>`;
             document.getElementById('missionContainer').appendChild(div);
         };
 
         window.saveAndFinish = function() {
-            if(confirm(`確定完成 ${currentSt.name} 的挑戰並存檔？`)) {
-                if(!history.includes(currentSt.name)) {
-                    history.push(currentSt.name);
-                    localStorage.setItem('vfx_travel_history', JSON.stringify(history));
-                }
-                document.getElementById('resultCard').style.display = "none";
+            if(!history.includes(currentSt.name)) {
+                history.push(currentSt.name);
+                localStorage.setItem('vfx_travel_history', JSON.stringify(history));
                 updateUI();
             }
+            document.getElementById('resultCard').style.display = "none";
         };
 
         function updateUI() {
-            document.getElementById('stats').innerText = `ADVENTURE LOG: ${history.length} / 15`;
-            document.getElementById('badges').innerHTML = history.map(h => `<span class="badge-done">✓ ${h}</span>`).join('');
+            document.getElementById('stats').innerText = `PROGRESS: ${history.length} / 15`;
+            // 更新已領取的徽章
+            document.getElementById('badges').innerHTML = history.map(h => 
+                `<div class="badge-item" onclick="toggleStation('${h}')">✓ ${h}</div>`
+            ).join('');
+            // 更新下方快速管理列表
+            document.getElementById('allStations').innerHTML = STATIONS.map(st => 
+                `<span class="st-tag ${history.includes(st.name)?'done':''}" onclick="toggleStation('${st.name}')">${st.name}</span>`
+            ).join('');
             draw();
         }
 
-        window.clearRecords = function() { if(confirm("確定重置所有冒險紀錄？")) { localStorage.clear(); history=[]; updateUI(); } };
+        window.setWeather = (t) => {
+            currentWeather=t; 
+            document.getElementById('wSunny').className = t==='sunny'?'w-btn active':'w-btn';
+            document.getElementById('wRainy').className = t==='rainy'?'w-btn active':'w-btn';
+        };
+        window.clearRecords = () => { if(confirm("確定全部清除？")) { localStorage.clear(); history=[]; updateUI(); } };
 
         updateUI(); update();
     </script>
