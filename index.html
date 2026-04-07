@@ -3,52 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚆 鐵道冒險護照 v5.5</title>
+    <meta name="robots" content="noindex, nofollow"> <title>🚆 鐵道冒險護照 v5.7.2 Beta</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #1a1008; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; --blue: #3498db; --gold: #ffd700; --epic: #9b59b6; }
+        :root { --bg: #1a1008; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; --blue: #3498db; --gold: #ffd700; --purple: #9b59b6; --gray: #7f8c8d; }
         body { background: var(--bg); color: #1a1008; font-family: 'Noto Serif TC', serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; min-height: 100vh; }
         
-        /* 修正後的啟動畫面 - 預設顯示 */
+        /* 門神啟動畫面 */
         #setupOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .setup-card { background: var(--paper); padding: 30px; border-radius: 15px; width: 100%; max-width: 320px; text-align: center; border: 4px solid var(--gold); }
-        input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid var(--accent); border-radius: 8px; font-family: inherit; font-size: 1rem; box-sizing: border-box; }
+        .setup-card { background: var(--paper); padding: 30px; border-radius: 15px; width: 100%; max-width: 320px; text-align: center; border: 4px solid var(--gold); box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--accent); border-radius: 8px; font-family: inherit; font-size: 1rem; box-sizing: border-box; }
 
         .status-bar { width: 100%; max-width: 400px; background: rgba(0,0,0,0.8); color: white; padding: 12px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; font-size: 0.85rem; border: 1px solid var(--gold); box-sizing: border-box; }
         
         /* 轉盤區 */
-        .weather-select { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 320px; }
-        .w-btn { flex: 1; padding: 10px; border-radius: 8px; border: 2px solid var(--paper); background: rgba(255,255,255,0.1); color: var(--paper); cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
-        .w-btn.active { background: var(--accent); border-color: var(--gold); color: white; transform: scale(1.05); }
-
-        .wheel-wrap { position: relative; margin-bottom: 25px; cursor: pointer; transition: transform 0.3s; }
-        .wheel-wrap:active { transform: scale(0.95); }
+        .wheel-wrap { position: relative; margin: 20px 0; cursor: pointer; transition: 0.3s; }
         #wheelCanvas { border-radius: 50%; box-shadow: 0 0 40px rgba(0,0,0,0.7); background: #333; border: 4px solid var(--gold); }
         .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; width: 30px; filter: drop-shadow(0 2px 5px black); }
 
-        /* 任務卡片 */
+        /* 任務卡片分類 */
         .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; width: 100%; }
-        .card { height: 130px; perspective: 1000px; cursor: pointer; }
+        .card { height: 145px; perspective: 1000px; cursor: pointer; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
         .card.flipped .card-inner { transform: rotateY(180deg); }
         .card-front, .card-back { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 10px; box-sizing: border-box; border: 2px solid rgba(0,0,0,0.1); }
-        .card-back { background: linear-gradient(135deg, #444, #222); color: white; font-weight: 900; font-size: 1.2rem; }
-        .card-front { background: white; transform: rotateY(180deg); font-size: 0.8rem; flex-direction: column; text-align: center; font-weight: bold; }
+        
+        .card-back { background: linear-gradient(135deg, #444, #222); color: white; flex-direction: column; }
+        .type-tag { font-size: 0.65rem; margin-top: 8px; padding: 3px 8px; border-radius: 20px; font-weight: 900; letter-spacing: 1px; }
+        .tag-local { background: var(--purple); box-shadow: 0 0 10px var(--purple); }
+        .tag-food { background: #e67e22; }
+        .tag-search { background: #2980b9; }
+        .tag-action { background: #27ae60; }
 
-        /* 按鈕 */
-        .btn { padding: 15px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; width: 100%; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; }
-        .btn:active { transform: translateY(2px); }
+        .card-front { background: white; transform: rotateY(180deg); font-size: 0.85rem; flex-direction: column; text-align: center; font-weight: 900; border: 3px solid var(--gold); }
+
+        /* 按鈕系統 */
+        .btn { padding: 15px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; width: 100%; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; margin-bottom: 10px; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         .btn-blue { background: linear-gradient(to bottom, var(--blue), #2980b9); color: white; }
         .btn-stop { background: linear-gradient(to bottom, #e74c3c, #c0392b); color: white; }
         .btn-green { background: var(--green); color: white; }
 
-        /* 彈窗樣式 */
-        #summaryOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 888; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .summary-paper { background: var(--paper); width: 100%; max-width: 350px; padding: 25px; border-radius: 4px; box-shadow: 0 0 30px var(--gold); border: 1px solid #dcd0ba; position: relative; }
-        .summary-content { border-top: 2px solid #333; border-bottom: 2px solid #333; margin: 15px 0; padding: 15px 0; font-size: 0.9rem; line-height: 1.6; max-height: 50vh; overflow-y: auto; }
-
-        /* 紀錄牆清單 */
-        .badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px; border-radius: 10px; font-size: 0.85rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        /* 版權宣告區 */
+        .footer { margin-top: auto; padding: 30px 0 10px 0; text-align: center; width: 100%; opacity: 0.4; color: white; font-size: 0.65rem; line-height: 1.5; }
         
         .hide { display: none !important; }
         .blink { animation: blinker 1.5s linear infinite; }
@@ -59,222 +56,179 @@
 
     <div id="setupOverlay">
         <div class="setup-card">
-            <h2 style="margin:0 0 10px 0; color:var(--accent);">🎖️ 冒險啟動</h2>
-            <p style="font-size:0.9rem; color:#555;">冒險者，請留下你的大名：</p>
-            <input type="text" id="userNameInput" placeholder="輸入名字 (如：阿輝隊長)">
-            <button class="btn btn-blue" onclick="saveUser()">進入冒險世界</button>
+            <h2 style="margin:0 0 5px 0; color:var(--accent);">🎖️ 冒險者登錄</h2>
+            <p style="font-size:0.7rem; color:var(--gray); margin-bottom:15px;">Version 5.7.2 Internal Beta</p>
+            <input type="text" id="userNameInput" placeholder="冒險者代號">
+            <input type="password" id="inviteCodeInput" placeholder="輸入通關邀請碼">
+            <button class="btn btn-blue" onclick="saveUser()" style="margin-top:10px;">驗證並啟動</button>
+            <p style="font-size:0.6rem; color:#999; margin-top:15px;">注意：本系統僅限家屬內部封測使用</p>
         </div>
     </div>
 
     <div class="status-bar">
-        <div>👤 <span id="displayUserName">冒險者</span></div>
-        <div>💰 總分: <span id="totalPoints">0</span></div>
+        <div>👤 <span id="displayUserName">---</span></div>
+        <div>💰 總積分: <span id="totalPoints">0</span></div>
     </div>
 
-    <div id="phaseSpin" class="wheel-container">
-        <div style="color:var(--paper); font-size:0.8rem; margin-bottom:8px; text-align:center;">選擇今日氣候：</div>
-        <div class="weather-select">
-            <button class="w-btn active" id="w-sunny" onclick="setWeather('sunny')">☀️ 晴天</button>
-            <button class="w-btn" id="w-cloudy" onclick="setWeather('cloudy')">☁️ 陰天</button>
-            <button class="w-btn" id="w-rainy" onclick="setWeather('rainy')">☔ 雨天</button>
-        </div>
-        
+    <div id="phaseSpin">
         <div class="wheel-wrap" onclick="handleSpinClick()">
             <svg class="pointer" viewBox="0 0 28 36"><polygon points="14,34 2,4 26,4" fill="#ffd700" stroke="#1a1008" stroke-width="2"/></svg>
             <canvas id="wheelCanvas" width="300" height="300"></canvas>
         </div>
-        
-        <button id="spinBtn" class="btn btn-blue" onclick="handleSpinClick()">🎲 點擊開始轉盤</button>
-        <p id="spinHint" class="blink" style="color:var(--gold); font-size:0.75rem; margin-top:12px; text-align:center;">按一下啟動，再按一下停止</p>
+        <button id="spinBtn" class="btn btn-blue" onclick="handleSpinClick()">🎲 啟動命運轉盤</button>
+        <p id="spinHint" class="blink" style="color:var(--gold); font-size:0.75rem; text-align:center;">點擊一下開始，再點擊一下停止</p>
     </div>
 
     <div id="phaseTask" class="hide">
-        <div id="resultCard" style="background:var(--paper); padding:20px; border-radius:15px; width:100%; max-width:400px; box-sizing:border-box; border-top:10px solid var(--accent);">
-            <div id="resName" style="font-size:2.8rem; font-weight:900; margin-bottom:2px;">十分</div>
-            <div id="resInfo" style="font-size:0.85rem; color:#666; margin-bottom:15px; border-bottom:1px solid #ccc; padding-bottom:8px;"></div>
+        <div style="background:var(--paper); padding:20px; border-radius:15px; width:100%; max-width:400px; box-sizing:border-box; border-top:10px solid var(--accent); position:relative; overflow:hidden;">
+            <div id="resName" style="font-size:2.8rem; font-weight:900; line-height:1;">車站</div>
+            <div id="resInfo" style="font-size:0.8rem; color:#666; margin:10px 0 15px 0; border-bottom:1px solid #ccc; padding-bottom:8px;"></div>
             
-            <div id="missionSelectionArea">
-                <p style="font-weight:900; font-size:0.9rem; margin-top:0;">🎁 點擊一張卡片揭曉任務：</p>
+            <div id="missionSelectUI">
+                <p style="font-weight:900; font-size:0.9rem; margin:0;">🎁 選擇情報分類進行挑戰：</p>
                 <div class="mission-grid" id="missionGrid"></div>
             </div>
 
-            <div id="missionActionArea" class="hide">
-                <div id="activeMissionDesc" style="background:white; padding:18px; border-radius:12px; border:3px solid var(--gold); margin-bottom:15px; font-weight:900; text-align:center; font-size:1rem;"></div>
-                <button class="btn btn-green" onclick="recordMission(true)" style="margin-bottom:10px;">✅ 我挑戰成功了！</button>
-                <button class="btn" style="background:#999; color:white; font-size:0.9rem;" onclick="recordMission(false)">❌ 現在不方便做，換一個</button>
+            <div id="missionActionUI" class="hide">
+                <div id="activeMissionDesc" style="background:white; padding:20px; border-radius:12px; border:3px solid var(--gold); margin-bottom:15px; font-weight:900; text-align:center; font-size:1.1rem; line-height:1.4;"></div>
+                <button class="btn btn-green" onclick="recordMission(true)">✅ 挑戰成功 (獲得積分)</button>
+                <button class="btn" style="background:#bdc3c7; color:#2c3e50; font-size:0.9rem;" onclick="recordMission(false)">❌ 換一個挑戰</button>
             </div>
 
-            <div style="background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; margin-top:15px;">
-                <strong style="font-size:0.75rem;">本站紀錄清單：</strong>
-                <div id="doneList" style="font-size:0.7rem; color:#444; margin-top:4px;">尚未開始冒險...</div>
+            <div style="background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; margin-top:10px; font-size:0.75rem;">
+                <strong>已達成本站紀錄：</strong>
+                <div id="doneList" style="color:#7f8c8d; margin-top:4px;">(尚無紀錄)</div>
             </div>
 
-            <button onclick="showSummary()" class="btn btn-blue" style="margin-top:20px;">🏁 結束本站冒險並存檔</button>
+            <button onclick="showSummary()" class="btn btn-blue" style="margin-top:20px;">🏁 結算本站並存入護照</button>
         </div>
     </div>
 
-    <div id="summaryOverlay" onclick="if(event.target==this) this.style.display='none'">
-        <div class="summary-paper">
-            <h2 id="sumTitle" style="text-align:center; margin:0; font-size:1.3rem; color:var(--accent);">📜 冒險戰報</h2>
-            <div class="summary-content" id="sumContent"></div>
-            <button id="saveJournalBtn" class="btn btn-blue" onclick="saveAndContinue()">存入冒險護照</button>
-            <button id="closeJournalBtn" class="btn hide" style="background:#666; color:white" onclick="document.getElementById('summaryOverlay').style.display='none'">關閉回顧</button>
-        </div>
+    <div class="footer">
+        <div>Version 5.7.2 Beta Build 2026.04</div>
+        <div>&copy; 2026 Railway Adventure Studio. All Rights Reserved.</div>
+        <div style="margin-top:5px;">[ 僅供開發者家庭內部測試使用 ]</div>
     </div>
 
-    <div style="margin-top:30px; width:100%; max-width:400px;">
-        <p style="color:white; opacity:0.6; font-size:0.75rem; text-align:center; letter-spacing:2px;">—— 📖 冒險者護照紀錄 ——</p>
-        <div id="badges"></div>
-        <button onclick="if(confirm('確定清除所有回憶嗎？')) {localStorage.clear(); location.reload();}" style="width:100%; background:none; border:none; color:#555; font-size:0.65rem; margin-top:30px; text-decoration:underline;">[ 清除所有本地紀錄 ]</button>
+    <div id="summaryOverlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:888; display:none; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:var(--paper); width:100%; max-width:350px; padding:25px; border-radius:4px; border:1px solid #dcd0ba;">
+            <h2 style="text-align:center; color:var(--accent); margin:0;">📜 冒險戰報結算</h2>
+            <div id="sumContent" style="margin:20px 0; font-size:0.9rem; line-height:1.6; border-top:1px solid #333; border-bottom:1px solid #333; padding:15px 0;"></div>
+            <button class="btn btn-blue" onclick="saveAndContinue()">存入冒險護照</button>
+        </div>
     </div>
 
     <script>
-        // 資料設定
+        /* --- 視覺隱藏驗證邏輯 (Base64) --- */
+        const _SECRET = "MjAyNg=="; // "2026"
+        function verify(input) { return input === atob(_SECRET); }
+
         const STATIONS = [
             { name: "瑞芳", food: "龍鳳腿", local: "找到『瑞芳』書法站牌拍照" },
             { name: "侯硐", food: "礦工麵", local: "數出至少 5 隻不同顏色的貓" },
             { name: "十分", food: "花生捲", local: "拍下火車經過民宅門口的瞬間" },
             { name: "福隆", food: "便當", local: "找到舊草嶺隧道標誌合照" },
-            { name: "礁溪", food: "蔥油餅", local: "完成一次公園免費足湯體驗" },
-            { name: "平溪", food: "麵茶", local: "尋找路邊正在製作的古早味小吃" }
+            { name: "礁溪", food: "蔥油餅", local: "完成一次公園免費足湯體驗" }
         ];
 
-        const GEN_MISSIONS = {
-            sunny: [{t:"在站牌前拍一張全家大跳躍",p:100}, {t:"尋找影子與車站建築的合影",p:50}],
-            cloudy: [{t:"尋找車站內最怪異的角落拍一張",p:100}, {t:"模仿路人的姿勢拍一張照",p:50}],
-            rainy: [{t:"拍一張雨滴落在月台的特寫",p:100}, {t:"尋找躲雨的生物或雨傘群",p:150}],
-            all: [{t:"指著有趣的路標拍一張帥照",p:50}, {t:"找出這站看起來最老的東西",p:100}, {t:"拍下火車進站的瞬間",p:150}]
+        const GEN_POOL = {
+            food: [{t:"買到一份該站推薦的美食並拍照",p:150}, {t:"在充滿香味的攤位前大合照",p:80}],
+            search: [{t:"找出這站看起來最老的車站設施",p:100}, {t:"拍到這站最有特色的建築角落",p:120}],
+            action: [{t:"在月台模仿火車進站的帥氣動作",p:200}, {t:"全家在站牌前拍一張大跳躍",p:150}]
         };
 
-        // 狀態初始化
         let state = {
             user: localStorage.getItem('tr_user') || "",
             history: JSON.parse(localStorage.getItem('tr_history')) || [],
             totalPoints: parseInt(localStorage.getItem('tr_points')) || 0,
-            currentStation: JSON.parse(localStorage.getItem('tr_active')) || null,
-            weather: 'sunny',
-            sessionPoints: 0,
-            sessionDone: [],
+            currentStation: null,
+            sessionPoints: 0, sessionDone: [],
             angle: 0, speed: 0, wheelState: "IDLE", lastMission: null
         };
 
-        const canvas = document.getElementById('wheelCanvas');
-        const ctx = canvas.getContext('2d');
-
         function init() {
-            // 檢查名字
-            if(state.user) {
-                document.getElementById('setupOverlay').classList.add('hide');
-                document.getElementById('displayUserName').innerText = state.user;
-            }
-            // 檢查進行中車站
-            if(state.currentStation) showPhase('task');
+            if(state.user) document.getElementById('setupOverlay').classList.add('hide');
             updateUI();
             requestAnimationFrame(animate);
         }
 
         function saveUser() {
-            const val = document.getElementById('userNameInput').value.trim();
-            if(!val) return alert("請輸入冒險者大名！");
-            state.user = val;
-            localStorage.setItem('tr_user', val);
+            const name = document.getElementById('userNameInput').value.trim();
+            const code = document.getElementById('inviteCodeInput').value.trim();
+            if(!name) return alert("請輸入冒險者名稱");
+            if(!verify(code)) return alert("驗證碼無效！請尋問領隊（爸爸）。");
+            state.user = name;
+            localStorage.setItem('tr_user', name);
             document.getElementById('setupOverlay').classList.add('hide');
             updateUI();
-        }
-
-        function setWeather(w) {
-            if(state.wheelState !== "IDLE") return;
-            state.weather = w;
-            document.querySelectorAll('.w-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('w-'+w).classList.add('active');
         }
 
         // --- 轉盤核心 ---
         function handleSpinClick() {
             const btn = document.getElementById('spinBtn');
-            const hint = document.getElementById('spinHint');
-
-            if(state.wheelState === "IDLE") {
-                state.wheelState = "SPINNING";
-                state.speed = 0.25;
-                btn.innerText = "🛑 點擊停止！";
-                btn.className = "btn btn-stop";
-                hint.innerText = "看準時機按下去！";
-            } else if(state.wheelState === "SPINNING") {
-                state.wheelState = "SLOWING";
-                btn.innerText = "正在緩緩停下...";
-                btn.disabled = true;
-                hint.innerText = "命運決定中...";
+            if(state.wheelState==="IDLE") { 
+                state.wheelState="SPINNING"; state.speed=0.25; 
+                btn.innerText="🛑 點擊停止命運"; btn.className="btn btn-stop";
+            } else if(state.wheelState==="SPINNING") { 
+                state.wheelState="SLOWING"; btn.innerText="命運決定中..."; btn.disabled=true;
             }
         }
-
         function animate() {
-            if(state.wheelState === "SPINNING") state.angle += state.speed;
-            else if(state.wheelState === "SLOWING") {
-                state.angle += state.speed;
-                state.speed *= 0.985;
-                if(state.speed < 0.002) {
-                    state.wheelState = "IDLE";
-                    finishSpin();
-                }
+            if(state.wheelState==="SPINNING") state.angle += state.speed;
+            else if(state.wheelState==="SLOWING") { 
+                state.angle += state.speed; state.speed *= 0.985; 
+                if(state.speed<0.002) { state.wheelState="IDLE"; finishSpin(); } 
             }
-            drawWheel();
-            requestAnimationFrame(animate);
+            drawWheel(); requestAnimationFrame(animate);
         }
-
         function drawWheel() {
-            const r = 150; ctx.clearRect(0,0,300,300);
+            const r=150; const c=document.getElementById('wheelCanvas').getContext('2d');
+            c.clearRect(0,0,300,300);
             for(let i=0; i<12; i++) {
                 const s = state.angle + i*(Math.PI/6) - Math.PI/2;
-                ctx.beginPath(); ctx.moveTo(r,r); ctx.arc(r,r,r-5,s,s+(Math.PI/6));
-                ctx.fillStyle = i%2 ? "#d4a84b" : "#e8c97a";
-                ctx.strokeStyle = "#1a1008"; ctx.lineWidth = 2;
-                ctx.fill(); ctx.stroke();
-                // 畫問號
-                ctx.save(); ctx.translate(r,r); ctx.rotate(s + Math.PI/12 + Math.PI/2);
-                ctx.fillStyle = "rgba(0,0,0,0.2)"; ctx.font = "bold 20px serif";
-                ctx.fillText("?", -5, -r*0.7); ctx.restore();
+                c.beginPath(); c.moveTo(r,r); c.arc(r,r,r-5,s,s+(Math.PI/6));
+                c.fillStyle = i%2 ? "#d4a84b" : "#e8c97a";
+                c.strokeStyle = "#1a1008"; c.lineWidth = 2; c.fill(); c.stroke();
             }
         }
-
         function finishSpin() {
             const stopAngle = ((-state.angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-            const idx = Math.floor(stopAngle / (Math.PI/6)) % STATIONS.length;
-            state.currentStation = STATIONS[idx];
-            state.sessionPoints = 0;
-            state.sessionDone = [];
-            localStorage.setItem('tr_active', JSON.stringify(state.currentStation));
-            
+            state.currentStation = STATIONS[Math.floor(stopAngle / (Math.PI/6)) % STATIONS.length];
             const btn = document.getElementById('spinBtn');
-            btn.disabled = false;
-            btn.innerText = "🎲 點擊開始轉盤";
-            btn.className = "btn btn-blue";
-            document.getElementById('spinHint').innerText = "按一下啟動，再按一下停止";
-
-            setTimeout(() => { showPhase('task'); updateUI(); }, 600);
+            btn.disabled=false; btn.innerText="🎲 啟動命運轉盤"; btn.className="btn btn-blue";
+            showPhase('task'); updateUI();
         }
 
-        // --- 任務系統 ---
+        // --- 任務卡片邏輯 (1張在地 + 2張隨機分類) ---
         function renderCards() {
-            document.getElementById('missionSelectionArea').classList.remove('hide');
-            document.getElementById('missionActionArea').classList.add('hide');
-            const grid = document.getElementById('missionGrid');
-            grid.innerHTML = '';
+            document.getElementById('missionSelectUI').classList.remove('hide');
+            document.getElementById('missionActionUI').classList.add('hide');
+            const grid = document.getElementById('missionGrid'); grid.innerHTML = '';
             
-            let pool = [{t: state.currentStation.local, p: 300, type: "🚩 當地限定"}];
-            let subs = [...GEN_MISSIONS.all, ...GEN_MISSIONS[state.weather]];
-            pool = pool.concat(subs.sort(() => 0.5 - Math.random()).slice(0, 2));
+            let pool = [{t: state.currentStation.local, p: 300, type: "local", label: "🚩在地"}];
+            let types = ['food', 'search', 'action'].sort(()=>0.5-Math.random()).slice(0, 2);
+            types.forEach(type => {
+                let m = GEN_POOL[type][Math.floor(Math.random()*GEN_POOL[type].length)];
+                pool.push({...m, type: type, label: {food:'🍱美食', search:'🔍探索', action:'🎭挑戰'}[type]});
+            });
 
-            pool.sort(() => 0.5 - Math.random()).forEach(m => {
+            pool.sort(()=>0.5-Math.random()).forEach(m => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.innerHTML = `<div class="card-inner"><div class="card-back">?</div><div class="card-front"><div style="font-size:0.6rem; color:var(--accent)">${m.type||'🎲 通用冒險'}</div>${m.t}</div></div>`;
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-back">
+                            <span style="font-size:1.5rem">📜</span>
+                            <div class="type-tag tag-${m.type}">${m.label}</div>
+                        </div>
+                        <div class="card-front">${m.t}</div>
+                    </div>`;
                 card.onclick = function() {
                     if(this.classList.contains('flipped')) return;
                     this.classList.add('flipped');
                     setTimeout(() => {
-                        document.getElementById('missionSelectionArea').classList.add('hide');
-                        document.getElementById('missionActionArea').classList.remove('hide');
+                        document.getElementById('missionSelectUI').classList.add('hide');
+                        document.getElementById('missionActionUI').classList.remove('hide');
                         document.getElementById('activeMissionDesc').innerText = m.t;
                         state.lastMission = m;
                     }, 600);
@@ -287,80 +241,34 @@
             if(success) {
                 state.sessionPoints += state.lastMission.p;
                 state.sessionDone.push(`✅ ${state.lastMission.t} (+${state.lastMission.p}P)`);
-            } else {
-                state.sessionDone.push(`❌ 跳過：${state.lastMission.t}`);
             }
-            updateUI();
-            renderCards();
+            updateUI(); renderCards();
         }
 
-        // --- 結算與遊記 ---
         function showSummary() {
-            const now = new Date();
-            const wEmoji = {sunny:'☀️ 晴天', cloudy:'☁️ 陰天', rainy:'☔ 雨天'}[state.weather];
-            document.getElementById('summaryOverlay').style.display = 'flex';
-            document.getElementById('saveJournalBtn').classList.remove('hide');
-            document.getElementById('closeJournalBtn').classList.add('hide');
-            
+            document.getElementById('summaryOverlay').style.display='flex';
             document.getElementById('sumContent').innerHTML = `
-                <b>冒險者：</b> ${state.user}<br>
-                <b>日期：</b> ${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}<br>
-                <b>氣候：</b> ${wEmoji}<br>
-                <hr style="border:0; border-top:1px dashed #999">
-                <b>冒險站點：</b> <span style="font-size:1.2rem; font-weight:900;">${state.currentStation.name}</span><br>
-                <b>美食成就：</b> 成功挑戰「${state.currentStation.food}」🍱<br>
-                <b>任務軌跡：</b><br>${state.sessionDone.length ? state.sessionDone.join('<br>') : '本日無執行任務'}<br>
-                <hr style="border:0; border-top:1px dashed #999">
-                <b>本日積分：</b> <span style="font-size:1.2rem; color:var(--accent);">+${state.sessionPoints} P</span>
-            `;
-        }
-
-        function viewJournal(idx) {
-            const h = state.history[idx];
-            document.getElementById('summaryOverlay').style.display = 'flex';
-            document.getElementById('saveJournalBtn').classList.add('hide');
-            document.getElementById('closeJournalBtn').classList.remove('hide');
-            document.getElementById('sumContent').innerHTML = `
-                <b>冒險者：</b> ${h.user}<br>
-                <b>日期：</b> ${h.date}<br>
-                <b>氣候：</b> ${h.weather}<br>
-                <hr style="border:0; border-top:1px dashed #999">
-                <b>站點：</b> <span style="font-size:1.2rem; font-weight:900;">${h.station}</span><br>
-                <b>美食：</b> 品嚐了「${h.food}」🍱<br>
-                <b>軌跡：</b><br>${h.log.join('<br>')}<br>
-                <hr style="border:0; border-top:1px dashed #999">
-                <b>結算分數：</b> ${h.p} P
+                <b>冒險站點：</b>${state.currentStation.name}<br>
+                <b>挑戰美食：</b>${state.currentStation.food} 🍱<br>
+                <hr style="border:0; border-top:1px dashed #ccc">
+                <b>執行軌跡：</b><br>${state.sessionDone.join('<br>') || '無記錄'}<br>
+                <hr style="border:0; border-top:1px dashed #ccc">
+                <b>獲得總積分：</b> <span style="font-size:1.2rem; color:var(--accent)">+${state.sessionPoints} P</span>
             `;
         }
 
         function saveAndContinue() {
-            const now = new Date();
-            const journal = {
-                user: state.user,
-                date: `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`,
-                weather: {sunny:'☀️', cloudy:'☁️', rainy:'☔'}[state.weather],
-                station: state.currentStation.name,
-                food: state.currentStation.food,
-                log: state.sessionDone,
-                p: state.sessionPoints
-            };
-            state.history.unshift(journal);
+            state.history.unshift({station: state.currentStation.name, p: state.sessionPoints, date: new Date().toLocaleDateString()});
             state.totalPoints += state.sessionPoints;
             localStorage.setItem('tr_history', JSON.stringify(state.history));
             localStorage.setItem('tr_points', state.totalPoints);
-            document.getElementById('summaryOverlay').style.display = 'none';
-            resetCurrent(false);
+            document.getElementById('summaryOverlay').style.display='none';
+            state.currentStation = null; showPhase('spin'); updateUI();
         }
 
         function showPhase(p) {
-            if(p==='spin') {
-                document.getElementById('phaseSpin').classList.remove('hide');
-                document.getElementById('phaseTask').classList.add('hide');
-            } else {
-                document.getElementById('phaseSpin').classList.add('hide');
-                document.getElementById('phaseTask').classList.remove('hide');
-                renderCards();
-            }
+            if(p==='spin') { document.getElementById('phaseSpin').classList.remove('hide'); document.getElementById('phaseTask').classList.add('hide'); }
+            else { document.getElementById('phaseSpin').classList.add('hide'); document.getElementById('phaseTask').classList.remove('hide'); renderCards(); }
         }
 
         function updateUI() {
@@ -369,32 +277,8 @@
             if(state.currentStation) {
                 document.getElementById('resName').innerText = state.currentStation.name;
                 document.getElementById('resInfo').innerText = `🚂 來到此站，別忘了試試：${state.currentStation.food}`;
-                document.getElementById('doneList').innerHTML = state.sessionDone.length ? state.sessionDone.join('<br>') : '等待挑戰中...';
+                document.getElementById('doneList').innerHTML = state.sessionDone.join('<br>') || '(尚無紀錄)';
             }
-            document.getElementById('badges').innerHTML = state.history.map((h, i) => `
-                <div class="badge" onclick="viewJournal(${i})">
-                    <span>${h.date} - ${h.station} (${h.p}P)</span>
-                    <span style="color:#ff6b6b; font-weight:900; padding:0 10px;" onclick="event.stopPropagation(); deleteJournal(${i})">×</span>
-                </div>
-            `).join('');
-        }
-
-        function deleteJournal(i) {
-            if(confirm("確定要刪除這段冒險回憶嗎？")) {
-                state.totalPoints -= state.history[i].p;
-                state.history.splice(i, 1);
-                localStorage.setItem('tr_history', JSON.stringify(state.history));
-                localStorage.setItem('tr_points', state.totalPoints);
-                updateUI();
-            }
-        }
-
-        function resetCurrent(confirmNeed = true) {
-            if (confirmNeed && !confirm("確定放棄目前站點的冒險嗎？")) return;
-            state.currentStation = null;
-            localStorage.removeItem('tr_active');
-            showPhase('spin');
-            updateUI();
         }
 
         init();
