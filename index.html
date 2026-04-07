@@ -3,88 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚆 鐵道大冒險 v5.1 - 冒險者模式</title>
+    <title>🚆 鐵道大冒險 v5.2 - 積分積分版</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #1a1008; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; --blue: #3498db; --gold: #ffd700; }
-        body { background: var(--bg); color: #1a1008; font-family: 'Noto Serif TC', serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; min-height: 100vh; overflow-x: hidden; }
+        :root { --bg: #1a1008; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; --blue: #3498db; --gold: #ffd700; --epic: #9b59b6; }
+        body { background: var(--bg); color: #1a1008; font-family: 'Noto Serif TC', serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; min-height: 100vh; }
         
-        /* 頂部狀態欄 */
-        .status-bar { width: 100%; max-width: 400px; background: rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; font-size: 0.8rem; }
+        .status-bar { width: 100%; max-width: 400px; background: rgba(0,0,0,0.5); color: white; padding: 12px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; font-size: 0.85rem; border: 1px solid var(--gold); }
+        .header h1 { color: var(--paper); font-size: 1.8rem; margin: 0 0 15px 0; }
+
+        /* 轉盤 */
+        .wheel-wrap { position: relative; margin-bottom: 20px; cursor: pointer; }
+        #wheelCanvas { border-radius: 50%; box-shadow: 0 0 30px rgba(0,0,0,0.6); background: #333; }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; width: 30px; }
+
+        /* 任務卡片 */
+        .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; width: 100%; }
+        .card { height: 130px; background: var(--accent); border-radius: 12px; perspective: 1000px; cursor: pointer; position: relative; }
+        .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 8px; box-sizing: border-box; }
+        .card-back { background: linear-gradient(45deg, var(--accent), #f07a2a); color: white; font-size: 2rem; font-weight: 900; }
+        .card-front { background: white; transform: rotateY(180deg); font-size: 0.8rem; flex-direction: column; border: 2px solid var(--gold); }
         
-        .header { text-align: center; color: var(--paper); margin-bottom: 20px; }
-        .header h1 { font-size: 1.8rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-
-        /* 轉盤區塊 */
-        .wheel-container { display: flex; flex-direction: column; align-items: center; }
-        .wheel-wrap { position: relative; margin-bottom: 25px; cursor: pointer; }
-        #wheelCanvas { border-radius: 50%; box-shadow: 0 0 30px rgba(0,0,0,0.6), 0 0 0 4px var(--gold); background: #333; }
-        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; width: 30px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-
-        /* 按鈕樣式 */
-        .btn { padding: 15px 30px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 1.1rem; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        #spinBtn { background: linear-gradient(135deg, var(--accent), #f07a2a); color: white; }
-        #spinBtn:disabled { background: #666; opacity: 0.5; }
-
-        /* 任務翻牌區 */
-        .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; width: 100%; max-width: 400px; }
-        .card { height: 120px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.6s; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-        .card.flipped { transform: rotateY(180deg); background: white; color: #333; font-size: 0.9rem; padding: 10px; text-align: center; font-weight: bold; }
-        .card-back { position: absolute; backface-visibility: hidden; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-        .card-front { position: absolute; backface-visibility: hidden; width: 100%; height: 100%; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center; padding: 10px; box-sizing: border-box; }
+        /* 難度標籤 */
+        .diff { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-bottom: 5px; font-weight: 900; }
+        .diff.easy { background: #e8f5e9; color: var(--green); }
+        .diff.hard { background: #fff3e0; color: var(--accent); }
+        .diff.epic { background: #f3e5f5; color: var(--epic); }
 
         /* 結果卡片 */
-        #resultCard { width: 100%; max-width: 420px; background: var(--paper); border-radius: 20px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.9); margin-top: 10px; border-top: 12px solid var(--accent); position: relative; }
-        .station-name { font-size: 3rem; font-weight: 900; color: #1a1008; margin: 10px 0; letter-spacing: -2px; }
-        .badge-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 15px; }
-        .tag { background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
+        #resultCard { width: 100%; max-width: 420px; background: var(--paper); border-radius: 20px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); margin-top: 5px; border-top: 10px solid var(--accent); }
+        .station-name { font-size: 2.8rem; font-weight: 900; margin: 5px 0; }
+        
+        /* 列表樣式 */
+        .done-list { font-size: 0.75rem; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; margin: 10px 0; max-height: 100px; overflow-y: auto; text-align: left; }
+        
+        .btn { padding: 12px 20px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; transition: 0.2s; width: 100%; margin-bottom: 8px; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-green { background: var(--green); color: white; }
 
+        /* 紀錄牆 */
+        .badge-item { background: rgba(255,255,255,0.15); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .del-btn { color: #ff6b6b; cursor: pointer; font-weight: 900; padding: 0 5px; }
+        
         .hide { display: none !important; }
     </style>
 </head>
 <body>
 
     <div class="status-bar">
-        <div id="statProgress">進度: 0 / 15</div>
-        <div id="statCurrent">目前狀態: 準備出發</div>
+        <div>💰 總分: <span id="totalPoints">0</span></div>
+        <div>🏆 站點: <span id="statProgress">0</span>/15</div>
     </div>
 
-    <div class="header">
-        <h1>🚆 鐵道大冒險</h1>
-    </div>
+    <div class="header"><h1>🚆 鐵道大冒險</h1></div>
 
     <div id="phaseSpin" class="wheel-container">
         <div class="wheel-wrap" onclick="startSpin()">
             <svg class="pointer" viewBox="0 0 28 36"><polygon points="14,34 2,4 26,4" fill="#ffd700" stroke="#1a1008" stroke-width="2"/></svg>
-            <canvas id="wheelCanvas" width="320" height="320"></canvas>
+            <canvas id="wheelCanvas" width="300" height="300"></canvas>
         </div>
-        <button id="spinBtn" class="btn" onclick="startSpin()">🎲 揭曉下一站</button>
-        <p style="color:var(--paper); opacity:0.6; font-size:0.8rem; margin-top:20px;">點擊轉盤或按鈕開始</p>
+        <button id="spinBtn" class="btn btn-blue" onclick="startSpin()">🎲 揭曉下一站</button>
     </div>
 
     <div id="phaseTask" class="hide">
         <div id="resultCard">
-            <div style="font-size:0.9rem; color:var(--accent); font-weight:900;">📍 目前抵達</div>
+            <div id="lunchAlert" class="hide" style="background:var(--gold); font-size:0.7rem; padding:4px; border-radius:5px; margin-bottom:10px; text-align:center; font-weight:900;">🔥 本站積分達標！解鎖加菜獎勵！</div>
             <div id="resName" class="station-name">---</div>
-            <div id="resInfo" style="font-size:0.9rem; margin-bottom:20px; color:#555;"></div>
+            <div id="resInfo" style="font-size:0.8rem; color:#666; margin-bottom:10px;"></div>
             
-            <hr style="border:0; border-top:1px dashed #ccc;">
-            
-            <p style="font-weight:900; margin-bottom:10px;">🎁 隨機任務 (三選一翻牌)</p>
-            <div class="mission-grid" id="missionGrid">
-                </div>
-
-            <div style="margin-top:25px;">
-                <button onclick="completeStation()" class="btn" style="width:100%; background:var(--green); color:white; margin-bottom:10px;">✅ 完成挑戰，存入紀錄</button>
-                <button onclick="resetCurrent()" style="width:100%; background:none; border:none; color:#999; font-size:0.7rem; text-decoration:underline; cursor:pointer;">放棄此站，重新轉盤</button>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:900; font-size:0.9rem;">🎁 任務抽選</span>
+                <span style="font-size:0.8rem; color:var(--accent);">本站累計: +<span id="sessionPoints">0</span> P</span>
             </div>
+
+            <div class="mission-grid" id="missionGrid"></div>
+
+            <button id="nextMissionBtn" class="btn btn-blue hide" onclick="renderCards()">🔄 換一組任務 (刷分)</button>
+            
+            <div style="font-size:0.7rem; margin:10px 0 5px 0; font-weight:900;">本站已完成：</div>
+            <div id="doneList" class="done-list">尚無紀錄</div>
+
+            <button onclick="completeStation()" class="btn btn-green">🚩 結束本站行程</button>
+            <button onclick="resetCurrent()" style="background:none; border:none; color:#999; font-size:0.6rem; cursor:pointer; width:100%;">放棄此站</button>
         </div>
     </div>
 
-    <div id="recordArea" style="margin-top:40px; width:100%; max-width:400px; color:white; text-align:center;">
-        <div style="font-size:0.7rem; opacity:0.5; margin-bottom:10px;">已征服的站點</div>
-        <div id="badges" class="badge-list" style="justify-content:center;"></div>
-        <button onclick="hardReset()" style="margin-top:40px; background:none; border:none; color:#444; font-size:0.6rem;">[ 清除所有冒險紀錄 ]</button>
+    <div style="margin-top:30px; width:100%; max-width:400px; text-align:center;">
+        <div style="color:var(--paper); opacity:0.5; font-size:0.7rem; margin-bottom:10px;">—— 冒險紀錄牆 ——</div>
+        <div id="badges" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
     </div>
 
     <script>
@@ -99,16 +107,24 @@
             { name: "富岡", city: "桃園", food: "豬腳" }
         ];
 
-        const MISSION_POOL = [
-            "找陽光/燈光灑落處拍一張合照 📸", "買一份在地美食並與站牌合影 🍱", "尋找站內編號 001 的東西 🔍", 
-            "模仿路人的姿勢拍一張照 🕺", "找出這站最老舊的物件 ⏰", "找出有趣的路標或警告標語 📍", 
-            "跟店員或路人說謝謝並獲得微笑 😊", "全家在出口拍一張『跳躍成功』照 🤸"
+        const MISSIONS = [
+            { t: "拍一張全家跳躍照", d: "easy", p: 50 },
+            { t: "尋找站內編號001的物品", d: "hard", p: 150 },
+            { t: "找在地人推薦一間店", d: "hard", p: 150 },
+            { t: "模仿路標或雕像合照", d: "easy", p: 50 },
+            { t: "找出這站最老的設施", d: "hard", p: 150 },
+            { t: "在月台拍火車進站縮時", d: "epic", p: 300 },
+            { t: "買到當站限定的小吃", d: "easy", p: 50 },
+            { t: "找出隱藏在車站的印章", d: "hard", p: 150 },
+            { t: "拍一張充滿電影感的空景", d: "epic", p: 300 }
         ];
 
-        // 遊戲狀態
         let state = {
             currentStation: JSON.parse(localStorage.getItem('tr_active')) || null,
             history: JSON.parse(localStorage.getItem('tr_history')) || [],
+            totalPoints: parseInt(localStorage.getItem('tr_points')) || 0,
+            sessionPoints: 0,
+            sessionDone: [],
             angle: 0,
             speed: 0,
             isSpinning: false
@@ -118,24 +134,17 @@
         const ctx = canvas.getContext('2d');
 
         function init() {
-            if (state.currentStation) {
-                showPhase('task');
-            } else {
-                showPhase('spin');
-            }
+            if (state.currentStation) showPhase('task');
+            else showPhase('spin');
             updateUI();
             requestAnimationFrame(animate);
         }
 
-        // 核心循環：繪製隱藏轉盤
         function animate() {
             if (state.isSpinning) {
                 state.angle += state.speed;
-                if (state.speed > 0.002) state.speed *= 0.985; 
-                else {
-                    state.isSpinning = false;
-                    finishSpin();
-                }
+                state.speed *= 0.985;
+                if (state.speed < 0.002) { state.isSpinning = false; finishSpin(); }
             }
             drawWheel();
             requestAnimationFrame(animate);
@@ -143,22 +152,16 @@
 
         function drawWheel() {
             const r = canvas.width / 2;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, 300, 300);
             const slice = (Math.PI * 2) / STATIONS.length;
-
             STATIONS.forEach((st, i) => {
                 const s = state.angle + i * slice - Math.PI / 2;
                 ctx.beginPath(); ctx.moveTo(r, r); ctx.arc(r, r, r - 5, s, s + slice);
-                ctx.fillStyle = i % 2 ? "#d4a84b" : "#e8c97a";
-                if (state.history.includes(st.name)) ctx.fillStyle = "#444";
+                ctx.fillStyle = state.history.some(h => h.name === st.name) ? "#444" : (i % 2 ? "#d4a84b" : "#e8c97a");
                 ctx.fill(); ctx.stroke();
-
-                // 蓋牌效果：轉盤上只顯示序號或問號
                 ctx.save(); ctx.translate(r, r); ctx.rotate(s + slice / 2 + Math.PI / 2);
-                ctx.fillStyle = "rgba(0,0,0,0.3)";
-                ctx.font = "bold 16px Arial"; ctx.textAlign = "center";
-                ctx.fillText(i + 1, 0, -r * 0.75);
-                ctx.restore();
+                ctx.fillStyle = "rgba(0,0,0,0.2)"; ctx.font = "bold 14px Arial";
+                ctx.fillText("?", 0, -r * 0.7); ctx.restore();
             });
         }
 
@@ -173,12 +176,41 @@
             const stopAngle = ((-state.angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
             const idx = Math.floor(stopAngle / ((Math.PI * 2) / STATIONS.length));
             state.currentStation = STATIONS[idx];
+            state.sessionPoints = 0;
+            state.sessionDone = [];
             localStorage.setItem('tr_active', JSON.stringify(state.currentStation));
-            
-            setTimeout(() => {
-                showPhase('task');
-                updateUI();
-            }, 800);
+            setTimeout(() => { showPhase('task'); updateUI(); }, 500);
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('missionGrid');
+            grid.innerHTML = '';
+            document.getElementById('nextMissionBtn').classList.add('hide');
+            const shuffled = [...MISSIONS].sort(() => 0.5 - Math.random()).slice(0, 3);
+            shuffled.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-back">?</div>
+                        <div class="card-front">
+                            <span class="diff ${m.d}">${m.d.toUpperCase()}</span>
+                            <div style="font-weight:900;">${m.t}</div>
+                            <div style="color:var(--accent); font-size:0.7rem; margin-top:5px;">+${m.p}P</div>
+                        </div>
+                    </div>
+                `;
+                card.onclick = function() {
+                    if(!this.classList.contains('flipped')) {
+                        this.classList.add('flipped');
+                        state.sessionPoints += m.p;
+                        state.sessionDone.push(`${m.t} (+${m.p}P)`);
+                        document.getElementById('nextMissionBtn').classList.remove('hide');
+                        updateUI();
+                    }
+                };
+                grid.appendChild(card);
+            });
         }
 
         function showPhase(p) {
@@ -193,61 +225,50 @@
             }
         }
 
-        // 翻牌機制
-        function renderCards() {
-            const grid = document.getElementById('missionGrid');
-            grid.innerHTML = '';
-            for (let i = 0; i < 3; i++) {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="card-back">?</div>
-                    <div class="card-front">${MISSION_POOL[Math.floor(Math.random() * MISSION_POOL.length)]}</div>
-                `;
-                card.onclick = function() { 
-                    if(!this.classList.contains('flipped')) {
-                        // 只允許翻一張
-                        document.querySelectorAll('.card').forEach(c => c.style.pointerEvents = 'none');
-                        this.classList.add('flipped');
-                    }
-                };
-                grid.appendChild(card);
+        function updateUI() {
+            document.getElementById('totalPoints').innerText = state.totalPoints;
+            document.getElementById('statProgress').innerText = state.history.length;
+            if (state.currentStation) {
+                document.getElementById('resName').innerText = state.currentStation.name;
+                document.getElementById('resInfo').innerText = `📍${state.currentStation.city} | 🍱${state.currentStation.food}`;
+                document.getElementById('sessionPoints').innerText = state.sessionPoints;
+                document.getElementById('doneList').innerHTML = state.sessionDone.length ? state.sessionDone.join('<br>') : '尚無紀錄';
+                // 午餐機制：本站滿 200 分提示
+                document.getElementById('lunchAlert').className = state.sessionPoints >= 200 ? '' : 'hide';
             }
+            // 紀錄牆顯示
+            document.getElementById('badges').innerHTML = state.history.map((h, i) => `
+                <div class="badge-item">
+                    ${h.name} (+${h.p}P) 
+                    <span class="del-btn" onclick="deleteHistory(${i})">×</span>
+                </div>
+            `).join('');
         }
 
         function completeStation() {
-            if (!state.history.includes(state.currentStation.name)) {
-                state.history.push(state.currentStation.name);
-                localStorage.setItem('tr_history', JSON.stringify(state.history));
-            }
+            state.totalPoints += state.sessionPoints;
+            state.history.push({ name: state.currentStation.name, p: state.sessionPoints });
+            localStorage.setItem('tr_points', state.totalPoints);
+            localStorage.setItem('tr_history', JSON.stringify(state.history));
             resetCurrent(false);
         }
 
+        function deleteHistory(index) {
+            if(confirm("確定刪除這條紀錄？積分也會扣除喔！")) {
+                state.totalPoints -= state.history[index].p;
+                state.history.splice(index, 1);
+                localStorage.setItem('tr_points', state.totalPoints);
+                localStorage.setItem('tr_history', JSON.stringify(state.history));
+                updateUI();
+            }
+        }
+
         function resetCurrent(confirmNeed = true) {
-            if (confirmNeed && !confirm("確定要放棄本站冒險並重抽嗎？")) return;
+            if (confirmNeed && !confirm("確定放棄本站？積分將不會儲存。")) return;
             state.currentStation = null;
             localStorage.removeItem('tr_active');
             showPhase('spin');
             updateUI();
-        }
-
-        function updateUI() {
-            if (state.currentStation) {
-                document.getElementById('resName').innerText = state.currentStation.name;
-                document.getElementById('resInfo').innerText = `🚂 城市：${state.currentStation.city} | 🍱 推薦：${state.currentStation.food}`;
-                document.getElementById('statCurrent').innerText = `目前站點: ${state.currentStation.name}`;
-            } else {
-                document.getElementById('statCurrent').innerText = `目前狀態: 準備抽選`;
-            }
-            document.getElementById('statProgress').innerText = `進度: ${state.history.length} / ${STATIONS.length}`;
-            document.getElementById('badges').innerHTML = state.history.map(h => `<span class="tag">✓ ${h}</span>`).join('');
-        }
-
-        function hardReset() {
-            if (confirm("這會刪除所有冒險紀錄，確定嗎？")) {
-                localStorage.clear();
-                location.reload();
-            }
         }
 
         init();
