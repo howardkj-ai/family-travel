@@ -4,41 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>🚆 鐵道冒險護照 v5.9 PRO</title>
+    <title>🚆 鐵道冒險護照 v6.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #1a1008; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; --blue: #3498db; --gold: #ffd700; --purple: #9b59b6; --gray: #7f8c8d; }
         body { background: var(--bg); color: #1a1008; font-family: 'Noto Serif TC', serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; min-height: 100vh; }
         
-        /* 頂部資訊欄 */
+        /* 儀表板 */
         .info-panel { width: 100%; max-width: 400px; background: rgba(0,0,0,0.9); color: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 2px solid var(--gold); }
         .info-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .weather-btn { background: #333; border: 1px solid var(--gold); border-radius: 5px; color: white; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; }
         .user-name { color: var(--gold); font-weight: 900; cursor: pointer; text-decoration: underline; }
-        .rank-tag { background: var(--accent); font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; vertical-align: middle; }
+        .rank-tag { background: var(--accent); font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; }
+        .weather-btn { background: #333; border: 1px solid var(--gold); border-radius: 5px; color: white; padding: 4px 10px; font-size: 0.75rem; cursor: pointer; }
 
-        /* 車站資訊 & 卡片區 */
+        /* 車站 & 卡片 */
         .station-card { background: var(--paper); padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; box-sizing: border-box; border-top: 8px solid var(--accent); }
         .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
-        .card { height: 130px; perspective: 1000px; cursor: pointer; }
+        .card { height: 120px; perspective: 1000px; cursor: pointer; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
         .card.flipped .card-inner { transform: rotateY(180deg); }
         .card-front, .card-back { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 10px; box-sizing: border-box; text-align: center; font-size: 0.8rem; }
         .card-back { background: #444; color: white; border: 1px solid #666; }
         .card-front { background: white; transform: rotateY(180deg); font-weight: 900; border: 3px solid var(--gold); }
 
-        /* 日記/紀錄區 */
+        /* 手風琴遊記區 */
         .journal-section { width: 100%; max-width: 400px; margin-top: 30px; }
-        .journal-item { background: var(--paper); padding: 15px; border-radius: 10px; margin-bottom: 12px; border-left: 5px solid var(--blue); position: relative; }
-        .journal-header { font-weight: 900; color: var(--accent); display: flex; justify-content: space-between; }
-        .journal-body { font-size: 0.85rem; margin-top: 8px; line-height: 1.6; color: #444; }
-        .btn-del { color: #c0392b; font-size: 0.75rem; cursor: pointer; border: none; background: none; text-decoration: underline; }
+        .journal-item { background: rgba(255,255,255,0.1); color: #ddd; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .journal-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); }
+        .journal-header:hover { background: rgba(255,255,255,0.1); }
+        .journal-content { padding: 0 15px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: var(--paper); color: #1a1008; }
+        .journal-item.active .journal-content { max-height: 500px; padding: 15px; }
+        .journal-item.active .journal-header { border-bottom: 2px solid var(--accent); color: var(--gold); }
 
-        .btn { padding: 15px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; width: 100%; font-size: 1.1rem; margin-bottom: 10px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
-        .btn:active { transform: translateY(2px); box-shadow: none; }
+        .btn { padding: 15px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; width: 100%; font-size: 1.1rem; margin-bottom: 10px; }
         .btn-blue { background: var(--blue); color: white; }
         .hide { display: none !important; }
-        
         #setupOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px; }
     </style>
 </head>
@@ -47,27 +47,27 @@
     <div id="setupOverlay">
         <div style="background:var(--paper); padding:30px; border-radius:15px; width:100%; max-width:320px; text-align:center; border:4px solid var(--gold);">
             <h2 id="setupTitle">🎖️ 冒險者登錄</h2>
-            <input type="text" id="userNameInput" placeholder="輸入你的冒險代號">
-            <input type="password" id="inviteCodeInput" placeholder="邀請碼 (初次登錄需要)">
-            <button class="btn btn-blue" onclick="saveUser()" style="margin-top:10px;">確認並進入</button>
-            <button id="cancelBtn" class="btn hide" style="background:#ccc;" onclick="toggleSetup(false)">取消修改</button>
+            <input type="text" id="userNameInput" placeholder="你的冒險代號">
+            <input type="password" id="inviteCodeInput" placeholder="邀請碼 (2026)">
+            <button class="btn btn-blue" onclick="saveUser()" style="margin-top:10px;">進入系統</button>
+            <button id="cancelBtn" class="btn hide" style="background:#ccc;" onclick="toggleSetup(false)">返回</button>
         </div>
     </div>
 
     <div class="info-panel">
         <div class="info-row">
-            <div>📅 <span id="currentDate">2026/04/08</span></div>
-            <div>
-                <span id="weatherDisplay" style="cursor:pointer;" onclick="changeWeather()">☀️</span>
-                <button class="weather-btn" onclick="window.open('https://www.cwa.gov.tw/V8/C/W/County/County.html?CountyID=10017', '_blank')">查詳細氣象</button>
+            <div>📅 <span id="currentDate">--/--</span></div>
+            <div id="weatherArea" class="hide">
+                <span id="weatherDisplay" style="cursor:pointer; font-size:1.2rem;" onclick="changeWeather()">☀️</span>
+                <button id="weatherLinkBtn" class="weather-btn" onclick="openWeather()">查當地氣象</button>
             </div>
         </div>
         <div class="info-row">
             <div>
-                <span class="user-name" onclick="toggleSetup(true)" title="點擊修改名稱">👤 <span id="displayUserName">---</span></span>
-                <span class="rank-tag" id="displayRank">鐵道實習生</span>
+                <span class="user-name" onclick="toggleSetup(true)"><span id="displayUserName">---</span></span>
+                <span class="rank-tag" id="displayRank">鐵道員</span>
             </div>
-            <div>💰 積分: <span id="totalPoints" style="color:var(--gold)">0</span></div>
+            <div>💰 <span id="totalPoints" style="color:var(--gold)">0</span> P</div>
         </div>
     </div>
 
@@ -76,7 +76,7 @@
             <canvas id="wheelCanvas" width="300" height="300"></canvas>
             <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); color:var(--gold); font-size:2rem;">▼</div>
         </div>
-        <button id="spinBtn" class="btn btn-blue" onclick="handleSpinClick()">🎲 轉動命運轉盤</button>
+        <button id="spinBtn" class="btn btn-blue" onclick="handleSpinClick()">🎲 決定目的地</button>
     </div>
 
     <div id="phaseTask" class="hide">
@@ -85,129 +85,96 @@
             <div id="resInfo" style="color:#666; margin-bottom:15px; font-size:0.8rem;"></div>
             
             <div id="missionSelectUI">
-                <p style="font-weight:900; font-size:0.85rem;">🎁 點擊卡片解鎖情報：</p>
                 <div class="mission-grid" id="missionGrid"></div>
             </div>
 
             <div id="missionActionUI" class="hide">
                 <div id="activeMissionDesc" style="background:white; padding:20px; border-radius:12px; border:3px solid var(--gold); margin-bottom:15px; font-weight:900; text-align:center;"></div>
                 <button class="btn" style="background:var(--green); color:white;" onclick="recordMission(true)">✅ 挑戰成功</button>
-                <button class="btn" style="background:#ccc;" onclick="recordMission(false)">❌ 換一個任務</button>
+                <button class="btn" style="background:#ccc;" onclick="recordMission(false)">❌ 放棄</button>
             </div>
 
-            <button onclick="showSummary()" class="btn btn-blue" style="margin-top:10px;">🏁 結算此站遊記</button>
+            <button onclick="showSummary()" class="btn btn-blue" style="margin-top:10px;">🏁 完成冒險結算</button>
         </div>
     </div>
 
     <div class="journal-section">
-        <h3 style="color:var(--gold); margin:0 0 15px 0;">📜 冒險者遊記 (日記)</h3>
+        <h3 style="color:var(--gold); margin-bottom:15px;">📜 冒險日記本</h3>
         <div id="journalList"></div>
     </div>
 
     <div id="summaryOverlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:888; display:none; align-items:center; justify-content:center; padding:20px;">
         <div style="background:var(--paper); width:100%; max-width:350px; padding:25px; border-radius:15px;">
-            <h2 style="text-align:center; color:var(--accent); margin-top:0;">📝 遊記草稿生成</h2>
-            <div id="sumContent" style="margin:15px 0; font-size:0.9rem; background:white; padding:15px; border-radius:8px; line-height:1.6;"></div>
-            <button class="btn btn-blue" onclick="saveAndContinue()">存入日記本</button>
+            <h2 style="text-align:center; color:var(--accent); margin:0;">📝 遊記生成中...</h2>
+            <div id="sumContent" style="margin:15px 0; font-size:0.85rem; background:white; padding:15px; border-radius:8px; line-height:1.8; border:1px solid #ddd;"></div>
+            <button class="btn btn-blue" onclick="saveAndContinue()">永久存入日記本</button>
         </div>
     </div>
 
     <script>
         const _SECRET = "MjAyNg=="; 
         const STATIONS = [
-            { name: "瑞芳", food: "龍鳳腿", local: "找到瑞芳站書法招牌拍照" },
-            { name: "侯硐", food: "礦工麵", local: "幫貓橋拍一張帥氣照片" },
-            { name: "十分", food: "花生捲", local: "拍到火車從民宅前穿過的瞬間" },
-            { name: "福隆", food: "便當", local: "在大門口學礦工擺POSE拍照" },
-            { name: "礁溪", food: "蔥油餅", local: "完成一次免費溫泉足湯挑戰" }
+            { name: "瑞芳", food: "龍鳳腿", region: "10017080", county: "New_Taipei_City" }, // 瑞芳區代碼
+            { name: "侯硐", food: "礦工麵", region: "10017080", county: "New_Taipei_City" },
+            { name: "十分", food: "花生捲", region: "10017150", county: "New_Taipei_City" }, // 平溪區代碼
+            { name: "福隆", food: "便當", region: "10017110", county: "New_Taipei_City" }, // 貢寮區代碼
+            { name: "礁溪", food: "蔥油餅", region: "10002050", county: "Yilan_County" }    // 礁溪鄉代碼
         ];
 
         const GEN_POOL = {
-            food: [{t:"買到一樣該站限定的美食",p:150}, {t:"在香味最濃的攤位前自拍",p:80}],
-            search: [{t:"找出這站最老的車站設施",p:100}, {t:"拍到一張很有氛圍的鐵軌照",p:100}],
-            action: [{t:"跟車站外觀拍一張帥氣合照",p:200}, {t:"對鏡頭比出大大的讚",p:150}]
+            food: [{t:"品嚐一份在地美食並紀錄評價",p:150}, {t:"在香味最強烈的攤位前拍照",p:80}],
+            search: [{t:"尋找車站內最有歷史感的角落",p:120}, {t:"拍到一張很有氛圍的月台照",p:100}],
+            action: [{t:"跟車站招牌拍一張帥氣大合照",p:200}, {t:"完成一個指定的動作自拍",p:150}]
         };
 
-        const RANKS = [
-            {min: 0, title: "鐵道實習生"},
-            {min: 500, title: "初級冒險家"},
-            {min: 1500, title: "資深背包客"},
-            {min: 3000, title: "鐵道萬事通"},
-            {min: 5000, title: "傳說級車長"}
-        ];
-
+        const RANKS = [{min:0, t:"鐵道員"}, {min:500, t:"初級探險家"}, {min:1500, t:"資深背包客"}, {min:3000, t:"冒險大師"}];
         const WEATHERS = ["☀️", "🌧️", "☁️", "🌤️"];
 
         let state = {
             user: localStorage.getItem('tr_user') || "",
             history: JSON.parse(localStorage.getItem('tr_history')) || [],
             totalPoints: parseInt(localStorage.getItem('tr_points')) || 0,
-            weatherIndex: 0,
-            currentStation: null, sessionPoints: 0, sessionDone: [], usedInStation: [],
+            weatherIdx: 0,
+            currentStation: null, sessionMissions: [], sessionPoints: 0,
             angle: 0, speed: 0, wheelState: "IDLE"
         };
 
         function init() {
             if(state.user) document.getElementById('setupOverlay').classList.add('hide');
             const d = new Date();
-            document.getElementById('currentDate').innerText = `${d.getMonth()+1}/${d.getDate()} (${['日','一','二','三','四','五','六'][d.getDay()]})`;
+            document.getElementById('currentDate').innerText = `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
             updateUI();
             requestAnimationFrame(animate);
         }
 
-        // --- 名稱修改邏輯 ---
-        function toggleSetup(show) {
-            const overlay = document.getElementById('setupOverlay');
-            document.getElementById('setupTitle').innerText = state.user ? "🔧 修改代號" : "🎖️ 冒險者登錄";
-            document.getElementById('userNameInput').value = state.user;
-            document.getElementById('inviteCodeInput').classList.toggle('hide', !!state.user);
-            document.getElementById('cancelBtn').classList.toggle('hide', !state.user);
-            overlay.classList.toggle('hide', !show);
-        }
-
+        // --- 名稱 & 氣象 ---
+        function toggleSetup(s) { document.getElementById('setupOverlay').classList.toggle('hide', !s); }
         function saveUser() {
-            const name = document.getElementById('userNameInput').value.trim();
-            const code = document.getElementById('inviteCodeInput').value.trim();
-            if(!name) return alert("請輸入名稱");
-            if(!state.user && code !== atob(_SECRET)) return alert("邀請碼錯誤");
-            state.user = name;
-            localStorage.setItem('tr_user', name);
-            toggleSetup(false);
-            updateUI();
+            const n = document.getElementById('userNameInput').value.trim();
+            const c = document.getElementById('inviteCodeInput').value.trim();
+            if(n && (state.user || c === atob(_SECRET))) {
+                state.user = n; localStorage.setItem('tr_user', n);
+                toggleSetup(false); updateUI();
+            }
+        }
+        function changeWeather() { state.weatherIdx = (state.weatherIdx+1)%WEATHERS.length; updateUI(); }
+        function openWeather() {
+            if(!state.currentStation) return;
+            const url = `https://www.cwa.gov.tw/V8/C/W/Town/Town.html?TID=${state.currentStation.region}`;
+            window.open(url, '_blank');
         }
 
-        // --- 天氣切換 ---
-        function changeWeather() {
-            state.weatherIndex = (state.weatherIndex + 1) % WEATHERS.length;
-            document.getElementById('weatherDisplay').innerText = WEATHERS[state.weatherIndex];
-        }
-
-        // --- 稱號邏輯 ---
-        function getRank(points) {
-            let title = RANKS[0].title;
-            for(let r of RANKS) { if(points >= r.min) title = r.title; }
-            return title;
-        }
-
-        // --- 任務抽卡 ---
+        // --- 抽卡 ---
         function renderCards() {
             document.getElementById('missionSelectUI').classList.remove('hide');
             document.getElementById('missionActionUI').classList.add('hide');
             const grid = document.getElementById('missionGrid'); grid.innerHTML = '';
-            
-            let cards = [{t: state.currentStation.local, p: 300, type: "local", label: "🚩在地"}];
-            const types = ['food', 'search', 'action'].sort(()=>0.5-Math.random());
-            let added = 0;
-            for(let type of types) {
-                if(added >= 2) break;
-                const available = GEN_POOL[type].filter(m => !state.usedInStation.includes(m.t));
-                if(available.length > 0) {
-                    const m = available[Math.floor(Math.random()*available.length)];
-                    cards.push({...m, type: type, label: {food:'🍱美食',search:'🔍探索',action:'🎭挑戰'}[type]});
-                    added++;
-                }
-            }
-            cards.sort(()=>0.5-Math.random()).forEach(m => {
+            let cards = [
+                {t: `挑戰：[在地限定] ${state.currentStation.name}特有任務`, p: 300, label: "🚩在地"},
+                {t: GEN_POOL.food[Math.floor(Math.random()*2)].t, p:150, label: "🍱美食"},
+                {t: GEN_POOL.search[Math.floor(Math.random()*2)].t, p:100, label: "🔍探索"}
+            ];
+            cards.forEach(m => {
                 const div = document.createElement('div');
                 div.className = 'card';
                 div.innerHTML = `<div class="card-inner"><div class="card-back">❓<br><small>${m.label}</small></div><div class="card-front">${m.t}</div></div>`;
@@ -227,16 +194,29 @@
         function recordMission(success) {
             if(success) {
                 state.sessionPoints += state.lastMission.p;
-                state.sessionDone.push(state.lastMission.t);
-                state.usedInStation.push(state.lastMission.t);
+                state.sessionMissions.push(state.lastMission.t);
             }
-            renderCards(); updateUI();
+            renderCards();
         }
 
-        // --- 遊記與存檔 ---
+        // --- 遊記生成 ---
         function showSummary() {
-            const summary = `今天來到了 ${state.currentStation.name} 站，天氣 ${WEATHERS[state.weatherIndex]}。我挑戰了：${state.sessionDone.join('、') || '純粹逛逛'}。這趟冒險獲得了 ${state.sessionPoints} 積分，真是充實的一站！`;
-            document.getElementById('sumContent').innerText = summary;
+            const d = new Date();
+            const rank = getRank(state.totalPoints);
+            const weather = WEATHERS[state.weatherIdx];
+            const missions = state.sessionMissions;
+            
+            let text = `📅 【冒險時間】 ${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}\n`;
+            text += `🌍 【冒險地點】 ${state.currentStation.name} (天氣：${weather})\n`;
+            text += `👤 【冒險人員】 ${rank} [${state.user}]\n`;
+            text += `--------------------------\n`;
+            text += `🌅 早上：抵達${state.currentStation.name}，開始執行任務。\n`;
+            text += `🍱 中午：品嚐了推薦美食 [${state.currentStation.food}]。\n`;
+            text += `📝 行程紀錄：\n${missions.map(m => " • " + m).join('\n') || " • 純粹散步觀察"}\n`;
+            text += `--------------------------\n`;
+            text += `💰 本站累積貢獻：${state.sessionPoints} 積分。`;
+
+            document.getElementById('sumContent').innerText = text;
             document.getElementById('summaryOverlay').style.display = 'flex';
         }
 
@@ -245,21 +225,52 @@
                 id: Date.now(),
                 station: state.currentStation.name,
                 points: state.sessionPoints,
-                text: document.getElementById('sumContent').innerText,
+                fullText: document.getElementById('sumContent').innerText,
                 date: new Date().toLocaleDateString()
             };
             state.history.unshift(entry);
             state.totalPoints += state.sessionPoints;
             localStorage.setItem('tr_history', JSON.stringify(state.history));
             localStorage.setItem('tr_points', state.totalPoints);
-            
-            state.currentStation = null; state.usedInStation = []; state.sessionDone = []; state.sessionPoints = 0;
+            state.currentStation = null; state.sessionMissions = []; state.sessionPoints = 0;
             document.getElementById('summaryOverlay').style.display = 'none';
             showPhase('spin'); updateUI();
         }
 
+        // --- UI 管理 ---
+        function updateUI() {
+            document.getElementById('displayUserName').innerText = state.user || "點擊登錄";
+            document.getElementById('totalPoints').innerText = state.totalPoints;
+            document.getElementById('displayRank').innerText = getRank(state.totalPoints);
+            document.getElementById('weatherDisplay').innerText = WEATHERS[state.weatherIdx];
+            document.getElementById('weatherArea').classList.toggle('hide', !state.currentStation);
+            
+            const list = document.getElementById('journalList');
+            list.innerHTML = state.history.map(h => `
+                <div class="journal-item" id="j-${h.id}">
+                    <div class="journal-header" onclick="toggleJournal(${h.id})">
+                        <span>📅 ${h.date} - ${h.station}</span>
+                        <small>▼</small>
+                    </div>
+                    <div class="journal-content">
+                        <pre style="white-space:pre-wrap; font-family:inherit; font-size:0.8rem;">${h.fullText}</pre>
+                        <div style="text-align:right; margin-top:10px;">
+                            <button style="color:red; background:none; border:none; cursor:pointer;" onclick="deleteJournal(${h.id})">🗑️ 刪除紀錄</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleJournal(id) {
+            const el = document.getElementById(`j-${id}`);
+            const isActive = el.classList.contains('active');
+            document.querySelectorAll('.journal-item').forEach(i => i.classList.remove('active'));
+            if(!isActive) el.classList.add('active');
+        }
+
         function deleteJournal(id) {
-            if(!confirm("確定要刪除這篇遊記嗎？積分也會扣除喔！")) return;
+            if(!confirm("確定要撕掉這頁日記嗎？積分也會扣除喔！")) return;
             const item = state.history.find(h => h.id === id);
             state.totalPoints -= item.points;
             state.history = state.history.filter(h => h.id !== id);
@@ -268,32 +279,13 @@
             updateUI();
         }
 
-        function updateUI() {
-            document.getElementById('displayUserName').innerText = state.user || "---";
-            document.getElementById('totalPoints').innerText = state.totalPoints;
-            document.getElementById('displayRank').innerText = getRank(state.totalPoints);
-            
-            const list = document.getElementById('journalList');
-            list.innerHTML = state.history.map(h => `
-                <div class="journal-item">
-                    <div class="journal-header">
-                        <span>📍 ${h.station} (${h.date})</span>
-                        <span style="color:var(--green)">+${h.points}P</span>
-                    </div>
-                    <div class="journal-body">${h.text}</div>
-                    <div style="text-align:right; margin-top:10px;">
-                        <button class="btn-del" onclick="deleteJournal(${h.id})">🗑️ 刪除這站紀錄</button>
-                    </div>
-                </div>
-            `).join('') || '<div style="color:white; opacity:0.5; text-align:center;">尚無遊記紀錄</div>';
-
-            if(state.currentStation) {
-                document.getElementById('resName').innerText = state.currentStation.name;
-                document.getElementById('resInfo').innerText = `必吃：${state.currentStation.food}`;
-            }
+        function getRank(p) {
+            let r = RANKS[0].t;
+            RANKS.forEach(x => { if(p >= x.min) r = x.t; });
+            return r;
         }
 
-        // --- 轉盤動畫 (簡化版) ---
+        // --- 轉盤動畫 (同前) ---
         function handleSpinClick() {
             if(state.wheelState==="IDLE") { state.wheelState="SPINNING"; state.speed=0.25; }
             else if(state.wheelState==="SPINNING") { state.wheelState="SLOWING"; }
