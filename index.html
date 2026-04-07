@@ -3,203 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚆 鐵道冒險 LifeOS v4.9</title>
+    <title>🚆 鐵道大冒險 v5.1 - 冒險者模式</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #1a1008; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; --blue: #3498db; }
-        body { background: var(--bg); color: #1a1008; font-family: 'Noto Serif TC', serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; min-height: 100vh; }
-        .header { text-align: center; color: var(--paper); margin-bottom: 15px; }
-        .header h1 { font-size: 1.6rem; margin: 0; letter-spacing: 0.1em; }
+        :root { --bg: #1a1008; --paper: #f5ead6; --accent: #d4580a; --green: #2e7d32; --blue: #3498db; --gold: #ffd700; }
+        body { background: var(--bg); color: #1a1008; font-family: 'Noto Serif TC', serif; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; min-height: 100vh; overflow-x: hidden; }
         
-        .wheel-wrap { position: relative; margin-bottom: 20px; }
-        #wheelCanvas { border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 0 4px var(--accent); }
-        .pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 10; width: 25px; }
+        /* 頂部狀態欄 */
+        .status-bar { width: 100%; max-width: 400px; background: rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; font-size: 0.8rem; }
+        
+        .header { text-align: center; color: var(--paper); margin-bottom: 20px; }
+        .header h1 { font-size: 1.8rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
 
-        button { padding: 12px 20px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; transition: 0.2s; }
-        #actionBtn { background: linear-gradient(135deg, #d4580a, #f07a2a); color: white; min-width: 130px; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        #actionBtn.stop { background: #c0392b; }
+        /* 轉盤區塊 */
+        .wheel-container { display: flex; flex-direction: column; align-items: center; }
+        .wheel-wrap { position: relative; margin-bottom: 25px; cursor: pointer; }
+        #wheelCanvas { border-radius: 50%; box-shadow: 0 0 30px rgba(0,0,0,0.6), 0 0 0 4px var(--gold); background: #333; }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; width: 30px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
 
-        #resultCard { width: 100%; max-width: 400px; background: var(--paper); border-radius: 15px; padding: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); display: none; margin-top: 10px; border-top: 10px solid var(--accent); }
-        .station-name { font-size: 2.8rem; font-weight: 900; margin: 5px 0; line-height: 1.1; }
-        
-        .weather-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: rgba(0,0,0,0.05); padding: 8px 12px; border-radius: 10px; }
-        .weather-selector { display: flex; gap: 5px; }
-        .w-btn { font-size: 0.75rem; padding: 6px 12px; background: #ddd; border-radius: 6px; border: 1px solid #ccc; }
-        .w-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
-        .search-hint { font-size: 0.7rem; color: var(--blue); text-decoration: none; font-weight: 900; }
-        
-        .mission-step { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .mission-text { font-size: 0.95rem; font-weight: 700; display: block; margin: 5px 0; color: #333; }
-        
-        .record-wall { width: 100%; max-width: 400px; margin-top: 30px; color: var(--paper); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; text-align: center; }
-        .badges-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
-        
-        /* 徽章樣式優化：可點擊刪除 */
-        .badge-item { background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.2s; position: relative; }
-        .badge-item:active { transform: scale(0.9); background: rgba(192, 57, 43, 0.5); }
-        .badge-item::after { content: '✕'; position: absolute; top: -5px; right: -5px; background: #c0392b; color: white; width: 14px; height: 14px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; opacity: 0; }
-        .badge-item:hover::after { opacity: 1; }
+        /* 按鈕樣式 */
+        .btn { padding: 15px 30px; border: none; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 1.1rem; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        #spinBtn { background: linear-gradient(135deg, var(--accent), #f07a2a); color: white; }
+        #spinBtn:disabled { background: #666; opacity: 0.5; }
 
-        .all-stations-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 20px; opacity: 0.4; }
-        .st-tag { font-size: 0.6rem; padding: 2px 6px; border: 1px solid #999; border-radius: 3px; cursor: pointer; }
-        .st-tag.done { background: var(--accent); color: white; border-color: var(--accent); opacity: 1; }
+        /* 任務翻牌區 */
+        .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; width: 100%; max-width: 400px; }
+        .card { height: 120px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.6s; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .card.flipped { transform: rotateY(180deg); background: white; color: #333; font-size: 0.9rem; padding: 10px; text-align: center; font-weight: bold; }
+        .card-back { position: absolute; backface-visibility: hidden; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .card-front { position: absolute; backface-visibility: hidden; width: 100%; height: 100%; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center; padding: 10px; box-sizing: border-box; }
+
+        /* 結果卡片 */
+        #resultCard { width: 100%; max-width: 420px; background: var(--paper); border-radius: 20px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.9); margin-top: 10px; border-top: 12px solid var(--accent); position: relative; }
+        .station-name { font-size: 3rem; font-weight: 900; color: #1a1008; margin: 10px 0; letter-spacing: -2px; }
+        .badge-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 15px; }
+        .tag { background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
+
+        .hide { display: none !important; }
     </style>
 </head>
 <body>
 
+    <div class="status-bar">
+        <div id="statProgress">進度: 0 / 15</div>
+        <div id="statCurrent">目前狀態: 準備出發</div>
+    </div>
+
     <div class="header">
         <h1>🚆 鐵道大冒險</h1>
-        <div id="stats" style="font-size:0.6rem; opacity:0.5; letter-spacing: 1px;">PROGRESS: 0 / 15</div>
     </div>
 
-    <div class="wheel-wrap">
-        <svg class="pointer" viewBox="0 0 28 36"><polygon points="14,34 2,4 26,4" fill="#d4580a" stroke="#1a1008" stroke-width="2"/></svg>
-        <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    <div id="phaseSpin" class="wheel-container">
+        <div class="wheel-wrap" onclick="startSpin()">
+            <svg class="pointer" viewBox="0 0 28 36"><polygon points="14,34 2,4 26,4" fill="#ffd700" stroke="#1a1008" stroke-width="2"/></svg>
+            <canvas id="wheelCanvas" width="320" height="320"></canvas>
+        </div>
+        <button id="spinBtn" class="btn" onclick="startSpin()">🎲 揭曉下一站</button>
+        <p style="color:var(--paper); opacity:0.6; font-size:0.8rem; margin-top:20px;">點擊轉盤或按鈕開始</p>
     </div>
 
-    <button id="actionBtn">🎲 開始旋轉</button>
+    <div id="phaseTask" class="hide">
+        <div id="resultCard">
+            <div style="font-size:0.9rem; color:var(--accent); font-weight:900;">📍 目前抵達</div>
+            <div id="resName" class="station-name">---</div>
+            <div id="resInfo" style="font-size:0.9rem; margin-bottom:20px; color:#555;"></div>
+            
+            <hr style="border:0; border-top:1px dashed #ccc;">
+            
+            <p style="font-weight:900; margin-bottom:10px;">🎁 隨機任務 (三選一翻牌)</p>
+            <div class="mission-grid" id="missionGrid">
+                </div>
 
-    <div id="resultCard">
-        <div class="weather-bar">
-            <div class="weather-selector">
-                <button id="wSunny" class="w-btn active" onclick="setWeather('sunny')">☀️ 晴天</button>
-                <button id="wRainy" class="w-btn" onclick="setWeather('rainy')">🌧️ 雨天</button>
+            <div style="margin-top:25px;">
+                <button onclick="completeStation()" class="btn" style="width:100%; background:var(--green); color:white; margin-bottom:10px;">✅ 完成挑戰，存入紀錄</button>
+                <button onclick="resetCurrent()" style="width:100%; background:none; border:none; color:#999; font-size:0.7rem; text-decoration:underline; cursor:pointer;">放棄此站，重新轉盤</button>
             </div>
-            <a id="weatherSearch" href="#" target="_blank" class="search-hint">🔍 查氣象</a>
-        </div>
-        <div id="resName" class="station-name"></div>
-        <div id="resInfo" style="font-size:0.8rem; color:var(--accent); font-weight:bold; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;"></div>
-        <div id="missionArea">
-            <div id="missionContainer"></div>
-            <button onclick="drawNewMission()" style="width:100%; background:var(--blue); color:white; margin-top:10px; border-radius:8px;">➕ 再抽任務</button>
-            <button onclick="saveAndFinish()" style="width:100%; background:var(--green); color:white; margin-top:15px; border-radius:8px;">✅ 完成本站挑戰</button>
         </div>
     </div>
 
-    <div class="record-wall">
-        <div style="font-size:0.7rem; letter-spacing:2px; opacity:0.6; font-weight:900;">COLLECTED STATIONS (點擊站名可刪除)</div>
-        <div id="badges" class="badges-container"></div>
-        
-        <div style="margin-top:40px; font-size:0.7rem; letter-spacing:2px; opacity:0.6; font-weight:900;">QUICK MANAGE (手動開關站點)</div>
-        <div id="allStations" class="all-stations-list"></div>
-        
-        <button onclick="clearRecords()" style="margin-top:30px; font-size:0.6rem; background:none; color:white; opacity:0.2;">HARD RESET EVERYTHING</button>
+    <div id="recordArea" style="margin-top:40px; width:100%; max-width:400px; color:white; text-align:center;">
+        <div style="font-size:0.7rem; opacity:0.5; margin-bottom:10px;">已征服的站點</div>
+        <div id="badges" class="badge-list" style="justify-content:center;"></div>
+        <button onclick="hardReset()" style="margin-top:40px; background:none; border:none; color:#444; font-size:0.6rem;">[ 清除所有冒險紀錄 ]</button>
     </div>
 
     <script>
         const STATIONS = [
-            { name: "瑞芳", city: "新北", food: "龍鳳腿", time: "40min" }, { name: "侯硐", city: "新北", food: "礦工麵", time: "50min" },
-            { name: "十分", city: "新北", food: "花生捲", time: "70min" }, { name: "福隆", city: "新北", food: "便當", time: "65min" },
-            { name: "礁溪", city: "宜蘭", food: "蔥油餅", time: "90min" }, { name: "平溪", city: "新北", food: "麵茶", time: "80min" },
-            { name: "菁桐", city: "新北", food: "雞捲", time: "85min" }, { name: "內灣", city: "新竹", food: "野薑花粽", time: "95min" },
-            { name: "三義", city: "苗栗", food: "粄條", time: "110min" }, { name: "大里", city: "宜蘭", food: "石花凍", time: "80min" },
-            { name: "合興", city: "新竹", food: "下午茶", time: "100min" }, { name: "崎頂", city: "苗栗", food: "西瓜", time: "90min" },
-            { name: "談文", city: "苗栗", food: "乾貨", time: "105min" }, { name: "三坑", city: "新竹", food: "菜包", time: "70min" },
-            { name: "富岡", city: "桃園", food: "豬腳", time: "60min" }
+            { name: "瑞芳", city: "新北", food: "龍鳳腿" }, { name: "侯硐", city: "新北", food: "礦工麵" },
+            { name: "十分", city: "新北", food: "花生捲" }, { name: "福隆", city: "新北", food: "便當" },
+            { name: "礁溪", city: "宜蘭", food: "蔥油餅" }, { name: "平溪", city: "新北", food: "麵茶" },
+            { name: "菁桐", city: "新北", food: "雞捲" }, { name: "內灣", city: "新竹", food: "野薑花粽" },
+            { name: "三義", city: "苗栗", food: "粄條" }, { name: "大里", city: "宜蘭", food: "石花凍" },
+            { name: "合興", city: "新竹", food: "下午茶" }, { name: "崎頂", city: "苗栗", food: "西瓜" },
+            { name: "談文", city: "苗栗", food: "乾貨" }, { name: "三坑", city: "新竹", food: "菜包" },
+            { name: "富岡", city: "桃園", food: "豬腳" }
         ];
 
-        const MISSION_DB = {
-            sunny: ["找陽光灑落處拍張全家福 ☀️", "尋找當地最色彩鮮豔的建築門窗 🎨", "買冰品/涼飲並與車站合影 🍦", "找出街頭上的影子藝術並拍下來 👤"],
-            rainy: ["在車站靜靜聽雨聲 30 秒 🌧️", "找一家有屋簷的老店觀察雨中街景 ☔", "尋找雨天限定的倒影拍一張照 📸", "觀察雨滴在不同材質表面跳動的樣子 💧"],
-            general: ["模仿站牌姿勢拍照 🕺", "問在地人：附近風景/食物最推？🗣️", "收集當地特色傳單或名片 🎫", "找出車站內最老的一個物件 ⏰", "找出有趣路標名稱 📍", "全家在出入口拍挑戰成功合照 👨‍👩‍👧‍👦"]
-        };
+        const MISSION_POOL = [
+            "找陽光/燈光灑落處拍一張合照 📸", "買一份在地美食並與站牌合影 🍱", "尋找站內編號 001 的東西 🔍", 
+            "模仿路人的姿勢拍一張照 🕺", "找出這站最老舊的物件 ⏰", "找出有趣的路標或警告標語 📍", 
+            "跟店員或路人說謝謝並獲得微笑 😊", "全家在出口拍一張『跳躍成功』照 🤸"
+        ];
 
-        let angle = 0, speed = 0, state = "IDLE", currentSt = null, currentWeather = 'sunny';
-        let history = JSON.parse(localStorage.getItem('vfx_travel_history')) || [];
-        let activeTasks = [];
+        // 遊戲狀態
+        let state = {
+            currentStation: JSON.parse(localStorage.getItem('tr_active')) || null,
+            history: JSON.parse(localStorage.getItem('tr_history')) || [],
+            angle: 0,
+            speed: 0,
+            isSpinning: false
+        };
 
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
 
-        function draw() {
-            const r = canvas.width / 2; ctx.clearRect(0,0,300,300);
-            const slice = (Math.PI*2)/STATIONS.length;
+        function init() {
+            if (state.currentStation) {
+                showPhase('task');
+            } else {
+                showPhase('spin');
+            }
+            updateUI();
+            requestAnimationFrame(animate);
+        }
+
+        // 核心循環：繪製隱藏轉盤
+        function animate() {
+            if (state.isSpinning) {
+                state.angle += state.speed;
+                if (state.speed > 0.002) state.speed *= 0.985; 
+                else {
+                    state.isSpinning = false;
+                    finishSpin();
+                }
+            }
+            drawWheel();
+            requestAnimationFrame(animate);
+        }
+
+        function drawWheel() {
+            const r = canvas.width / 2;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const slice = (Math.PI * 2) / STATIONS.length;
+
             STATIONS.forEach((st, i) => {
-                const s = angle + i*slice - Math.PI/2;
-                ctx.beginPath(); ctx.moveTo(r,r); ctx.arc(r,r,r-5,s,s+slice);
-                ctx.fillStyle = history.includes(st.name) ? "#4a3a2a" : (i%2?"#e8c97a":"#d4a84b");
+                const s = state.angle + i * slice - Math.PI / 2;
+                ctx.beginPath(); ctx.moveTo(r, r); ctx.arc(r, r, r - 5, s, s + slice);
+                ctx.fillStyle = i % 2 ? "#d4a84b" : "#e8c97a";
+                if (state.history.includes(st.name)) ctx.fillStyle = "#444";
                 ctx.fill(); ctx.stroke();
-                ctx.save(); ctx.translate(r,r); ctx.rotate(s+slice/2+Math.PI/2);
-                ctx.fillStyle = history.includes(st.name) ? "#777" : "#1a1008";
-                ctx.font = "bold 12px serif"; ctx.textAlign="center"; ctx.fillText(st.name,0,-r*0.75); ctx.restore();
+
+                // 蓋牌效果：轉盤上只顯示序號或問號
+                ctx.save(); ctx.translate(r, r); ctx.rotate(s + slice / 2 + Math.PI / 2);
+                ctx.fillStyle = "rgba(0,0,0,0.3)";
+                ctx.font = "bold 16px Arial"; ctx.textAlign = "center";
+                ctx.fillText(i + 1, 0, -r * 0.75);
+                ctx.restore();
             });
         }
 
-        document.getElementById('actionBtn').onclick = function() {
-            if(state==="IDLE"){ state="SPINNING"; speed=0.25; this.innerText="🛑 停！"; document.getElementById('resultCard').style.display='none'; }
-            else if(state==="SPINNING"){ state="SLOWING"; this.style.display="none"; }
-        };
-
-        function update() {
-            if(state==="SPINNING") angle+=speed;
-            else if(state==="SLOWING"){ speed*=0.985; angle+=speed; if(speed<0.002){ state="IDLE"; finish(); } }
-            draw(); requestAnimationFrame(update);
+        function startSpin() {
+            if (state.isSpinning || state.currentStation) return;
+            state.isSpinning = true;
+            state.speed = 0.3 + Math.random() * 0.2;
+            document.getElementById('spinBtn').disabled = true;
         }
 
-        function finish() {
-            const stopAngle = ((-angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        function finishSpin() {
+            const stopAngle = ((-state.angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
             const idx = Math.floor(stopAngle / ((Math.PI * 2) / STATIONS.length));
-            currentSt = STATIONS[idx];
-            document.getElementById('resultCard').style.display = 'block';
-            document.getElementById('resName').innerText = currentSt.name;
-            document.getElementById('resInfo').innerText = `📍 ${currentSt.city} · 🍱 ${currentSt.food}`;
-            document.getElementById('weatherSearch').href = `https://www.google.com/search?q=${currentSt.name}天氣`;
-            document.getElementById('missionContainer').innerHTML = "";
-            activeTasks = []; drawNewMission();
-            document.getElementById('actionBtn').style.display="inline-block";
-            document.getElementById('actionBtn').innerText="🎲 再次旋轉";
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            state.currentStation = STATIONS[idx];
+            localStorage.setItem('tr_active', JSON.stringify(state.currentStation));
+            
+            setTimeout(() => {
+                showPhase('task');
+                updateUI();
+            }, 800);
         }
 
-        window.toggleStation = function(name) {
-            const index = history.indexOf(name);
-            if (index > -1) history.splice(index, 1);
-            else history.push(name);
-            localStorage.setItem('vfx_travel_history', JSON.stringify(history));
-            updateUI();
-        };
-
-        window.drawNewMission = function() {
-            const pool = [...MISSION_DB.general, ...MISSION_DB[currentWeather]];
-            let task = pool[Math.floor(Math.random()*pool.length)];
-            if(activeTasks.includes(task)) return drawNewMission();
-            activeTasks.push(task);
-            const div = document.createElement('div');
-            div.className = "mission-step";
-            div.innerHTML = `<span class="mission-text">${task}</span>`;
-            document.getElementById('missionContainer').appendChild(div);
-        };
-
-        window.saveAndFinish = function() {
-            if(!history.includes(currentSt.name)) {
-                history.push(currentSt.name);
-                localStorage.setItem('vfx_travel_history', JSON.stringify(history));
-                updateUI();
+        function showPhase(p) {
+            if (p === 'spin') {
+                document.getElementById('phaseSpin').classList.remove('hide');
+                document.getElementById('phaseTask').classList.add('hide');
+                document.getElementById('spinBtn').disabled = false;
+            } else {
+                document.getElementById('phaseSpin').classList.add('hide');
+                document.getElementById('phaseTask').classList.remove('hide');
+                renderCards();
             }
-            document.getElementById('resultCard').style.display = "none";
-        };
+        }
+
+        // 翻牌機制
+        function renderCards() {
+            const grid = document.getElementById('missionGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-back">?</div>
+                    <div class="card-front">${MISSION_POOL[Math.floor(Math.random() * MISSION_POOL.length)]}</div>
+                `;
+                card.onclick = function() { 
+                    if(!this.classList.contains('flipped')) {
+                        // 只允許翻一張
+                        document.querySelectorAll('.card').forEach(c => c.style.pointerEvents = 'none');
+                        this.classList.add('flipped');
+                    }
+                };
+                grid.appendChild(card);
+            }
+        }
+
+        function completeStation() {
+            if (!state.history.includes(state.currentStation.name)) {
+                state.history.push(state.currentStation.name);
+                localStorage.setItem('tr_history', JSON.stringify(state.history));
+            }
+            resetCurrent(false);
+        }
+
+        function resetCurrent(confirmNeed = true) {
+            if (confirmNeed && !confirm("確定要放棄本站冒險並重抽嗎？")) return;
+            state.currentStation = null;
+            localStorage.removeItem('tr_active');
+            showPhase('spin');
+            updateUI();
+        }
 
         function updateUI() {
-            document.getElementById('stats').innerText = `PROGRESS: ${history.length} / 15`;
-            // 更新已領取的徽章
-            document.getElementById('badges').innerHTML = history.map(h => 
-                `<div class="badge-item" onclick="toggleStation('${h}')">✓ ${h}</div>`
-            ).join('');
-            // 更新下方快速管理列表
-            document.getElementById('allStations').innerHTML = STATIONS.map(st => 
-                `<span class="st-tag ${history.includes(st.name)?'done':''}" onclick="toggleStation('${st.name}')">${st.name}</span>`
-            ).join('');
-            draw();
+            if (state.currentStation) {
+                document.getElementById('resName').innerText = state.currentStation.name;
+                document.getElementById('resInfo').innerText = `🚂 城市：${state.currentStation.city} | 🍱 推薦：${state.currentStation.food}`;
+                document.getElementById('statCurrent').innerText = `目前站點: ${state.currentStation.name}`;
+            } else {
+                document.getElementById('statCurrent').innerText = `目前狀態: 準備抽選`;
+            }
+            document.getElementById('statProgress').innerText = `進度: ${state.history.length} / ${STATIONS.length}`;
+            document.getElementById('badges').innerHTML = state.history.map(h => `<span class="tag">✓ ${h}</span>`).join('');
         }
 
-        window.setWeather = (t) => {
-            currentWeather=t; 
-            document.getElementById('wSunny').className = t==='sunny'?'w-btn active':'w-btn';
-            document.getElementById('wRainy').className = t==='rainy'?'w-btn active':'w-btn';
-        };
-        window.clearRecords = () => { if(confirm("確定全部清除？")) { localStorage.clear(); history=[]; updateUI(); } };
+        function hardReset() {
+            if (confirm("這會刪除所有冒險紀錄，確定嗎？")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
 
-        updateUI(); update();
+        init();
     </script>
 </body>
 </html>
