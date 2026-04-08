@@ -1,298 +1,1005 @@
 <!DOCTYPE html>
+
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🚆 鐵道任務局 v9.1 - Hotfix</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Zen+Antique&display=swap" rel="stylesheet">
-    <style>
-        :root { --bg: #0f0c08; --paper: #f7eed8; --ink: #1a1008; --gold: #c8960a; --gold-light: #f0c840; }
-        body { background: var(--bg); color: var(--paper); font-family: 'Noto Serif TC', serif; margin: 0; padding: 0; overflow-x: hidden; }
-        
-        /* ── Setup Overlay ── */
-        #setupOverlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .setup-box { background: var(--paper); padding: 30px; border-radius: 14px; color: var(--ink); width: 100%; max-width: 300px; text-align: center; border: 4px solid var(--gold); }
-        .setup-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🚆 鐵道任務局 v9</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Zen+Antique&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0b07;
+  --paper: #f7eed8;
+  --ink: #1a1008;
+  --gold: #c8960a;
+  --gold-light: #f0c840;
+  --nav: #1a4a8a;
+  --sup: #8a1a1a;
+  --green: #2e7d32;
+  --r: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--paper);
+  font-family: 'Noto Serif TC', serif;
+  min-height: 100vh;
+  padding-bottom: 60px;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.012) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.012) 40px);
+}
 
-        /* ── Dashboard ── */
-        .dashboard { padding: 15px 20px; background: rgba(26,18,8,0.95); border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .lv-tag { background: var(--gold); color: black; padding: 2px 8px; border-radius: 4px; font-weight: 900; font-size: 0.7rem; }
-        .pts-count { color: var(--gold-light); font-size: 1.2rem; font-weight: 900; }
+/* ── HEADER ── */
+.header {
+position: relative; z-index: 10;
+padding: 18px 18px 12px;
+display: flex; justify-content: space-between; align-items: center;
+border-bottom: 1px solid rgba(200,150,10,0.18);
+background: linear-gradient(180deg,#1a1208 0%,transparent 100%);
+}
+.htitle { font-family:‘Zen Antique’,serif; font-size:1rem; color:var(–gold); letter-spacing:.2em; }
+.hsub   { font-size:.6rem; opacity:.4; letter-spacing:.15em; margin-top:2px; }
+.hright { text-align:right; cursor:pointer; }
+.hpts   { color:var(–gold-light); font-size:1.15rem; font-weight:900; }
+.hmeta  { font-size:.58rem; opacity:.45; margin-top:2px; }
 
-        /* ── Main ── */
-        .main { padding: 20px; max-width: 440px; margin: 0 auto; min-height: 80vh; }
-        .hide { display: none !important; }
+/* ── MAIN ── */
+.main { position:relative; z-index:1; padding:0 15px; max-width:440px; margin:0 auto; }
 
-        /* ── 任務卡片 ── */
-        .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
-        .mystery-card { height: 160px; perspective: 1000px; cursor: pointer; }
-        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
-        .mystery-card.flipped .card-inner { transform: rotateY(180deg); }
-        .card-front, .card-back { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; text-align: center; box-sizing: border-box; }
-        .card-back { background: #222; border: 2px solid var(--gold); color: var(--gold); font-size: 2.2rem; }
-        .card-front { background: white; color: var(--ink); transform: rotateY(180deg); border: 2px solid var(--gold); }
-        
-        .task-cat { font-size: 0.55rem; background: var(--ink); color: white; padding: 2px 6px; border-radius: 4px; margin-bottom: 5px; }
-        .task-text { font-size: 0.65rem; font-weight: 700; line-height: 1.3; flex-grow: 1; display: flex; align-items: center; }
+/* ── OVERLAYS ── */
+.overlay {
+position:fixed; inset:0; z-index:999;
+display:flex; align-items:center; justify-content:center;
+padding:20px; background:rgba(10,8,4,.97);
+}
+.overlay.hidden { display:none; }
+.obox {
+background:var(–paper); color:var(–ink);
+padding:28px 22px; border-radius:var(–r);
+width:100%; max-width:330px;
+border:3px solid var(–gold);
+box-shadow:0 0 60px rgba(200,150,10,.3);
+}
+.obox h2 { font-family:‘Zen Antique’,serif; font-size:1.2rem; text-align:center; margin-bottom:4px; }
+.obox p  { font-size:.68rem; text-align:center; opacity:.6; margin-bottom:18px; }
+.inp {
+width:100%; padding:10px 13px; margin-bottom:10px;
+border:2px solid #ccc; border-radius:8px;
+font-family:‘Noto Serif TC’,serif; font-size:.9rem; background:#fafafa;
+}
+.inp:focus { outline:none; border-color:var(–gold); }
 
-        /* ── 按鈕 ── */
-        .btn { border: none; padding: 14px; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; transition: 0.2s; }
-        .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #000; width: 100%; }
-        .btn-done { background: #2e7d32; color: white; width: 100%; font-size: 0.65rem; padding: 8px; margin-top: 5px; border-radius: 5px; }
+/* Mode toggle */
+.mode-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.mode-btn {
+padding:12px 8px; border-radius:10px; cursor:pointer;
+border:2px solid #ccc; text-align:center;
+font-family:‘Noto Serif TC’,serif; font-size:.78rem; font-weight:900;
+background:#f0e8d0; color:var(–ink); transition:all .15s;
+}
+.mode-btn.sel { background:var(–ink); color:var(–gold-light); border-color:var(–gold); }
+.mode-icon { font-size:1.4rem; display:block; margin-bottom:4px; }
 
-        /* ── 獎勵彈窗 ── */
-        #rewardPopup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 30px; }
-        
-        footer { text-align: center; font-size: 0.6rem; opacity: 0.3; padding: 30px; }
-    </style>
+/* Role cards */
+.role-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.rcard {
+padding:14px 10px; border-radius:10px; cursor:pointer;
+border:2px solid transparent; text-align:center; transition:all .18s;
+}
+.rcard.nav-c { background:linear-gradient(135deg,#0d2a5a,#1a4a8a); border-color:#2a6aaa; }
+.rcard.sup-c { background:linear-gradient(135deg,#5a0d0d,#8a1a1a); border-color:#aa2a2a; }
+.rcard.sel-nav { box-shadow:0 0 18px rgba(26,74,138,.9),0 0 0 2px #4a8adf; border-color:#4a8adf; transform:scale(1.04); }
+.rcard.sel-sup { box-shadow:0 0 18px rgba(138,26,26,.9),0 0 0 2px #df4a4a; border-color:#df4a4a; transform:scale(1.04); }
+.rcard-icon { font-size:1.8rem; margin-bottom:4px; }
+.rcard-name { font-weight:900; font-size:.78rem; }
+.rcard-desc { font-size:.56rem; opacity:.7; line-height:1.4; margin-top:3px; }
+
+/* ── BUTTONS ── */
+.btn {
+width:100%; padding:13px; border:none; border-radius:50px;
+font-weight:900; cursor:pointer;
+font-family:‘Noto Serif TC’,serif; font-size:.95rem;
+transition:all .15s; letter-spacing:.05em;
+}
+.btn-gold {
+background:linear-gradient(135deg,var(–gold),var(–gold-light));
+color:var(–ink); box-shadow:0 4px 18px rgba(200,150,10,.4);
+}
+.btn-gold:active { transform:scale(.97); }
+.btn-ghost {
+background:rgba(255,255,255,.07); color:var(–paper);
+border:1px solid rgba(255,255,255,.15);
+}
+.btn-sm {
+padding:8px 14px; border:none; border-radius:30px;
+font-family:‘Noto Serif TC’,serif; font-weight:900;
+font-size:.7rem; cursor:pointer; transition:all .15s;
+}
+
+/* ── WHEEL ── */
+#phaseSpin { padding-top:8px; }
+.wheel-wrap { display:flex; flex-direction:column; align-items:center; margin:18px 0; }
+.wheel-ptr {
+color:var(–gold-light); font-size:2rem; margin-bottom:-8px; z-index:5;
+filter:drop-shadow(0 0 8px rgba(240,200,64,.6));
+animation:ptrPulse 2s ease-in-out infinite;
+}
+@keyframes ptrPulse { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+#wheelCanvas {
+border-radius:50%;
+box-shadow:0 0 0 4px rgba(200,150,10,.25), 0 0 40px rgba(200,150,10,.12), 0 18px 50px rgba(0,0,0,.8);
+cursor:pointer; touch-action:none;
+}
+.spin-hint { font-size:.6rem; opacity:.35; text-align:center; margin-top:8px; letter-spacing:.1em; }
+
+/* ── STATION REVEAL ── */
+.station-hero {
+text-align:center; padding:22px 16px 14px;
+background:linear-gradient(180deg,rgba(200,150,10,.1) 0%,transparent 100%);
+border-radius:var(–r) var(–r) 0 0;
+border:1px solid rgba(200,150,10,.2); border-bottom:none;
+}
+.sname {
+font-family:‘Zen Antique’,serif; font-size:3.2rem; font-weight:900;
+color:var(–gold-light);
+text-shadow:0 0 40px rgba(240,200,64,.4);
+line-height:1;
+}
+.sname.mystery { filter:blur(6px); cursor:default; transition:filter .6s; }
+.ssub { font-size:.65rem; opacity:.45; margin-top:5px; letter-spacing:.2em; }
+
+/* ── TASK PANELS ── */
+#phaseTask { display:none; padding-top:8px; }
+.panels-wrap { border:1px solid rgba(200,150,10,.15); border-top:none; border-radius:0 0 var(–r) var(–r); overflow:hidden; }
+
+/* single mode: full width */
+.panel-single { padding:14px 12px; background:rgba(255,255,255,.02); }
+/* duo mode */
+.panel-duo { display:grid; grid-template-columns:1fr 1fr; }
+.panel-nav { padding:14px 10px; background:linear-gradient(180deg,rgba(26,74,138,.22) 0%,rgba(26,74,138,.08) 100%); border-left:3px solid #2a6aaa; }
+.panel-sup { padding:14px 10px; background:linear-gradient(180deg,rgba(138,26,26,.22) 0%,rgba(138,26,26,.08) 100%); border-right:3px solid #aa2a2a; }
+.ph { display:flex; align-items:center; gap:5px; margin-bottom:10px; padding-bottom:7px; border-bottom:1px solid rgba(255,255,255,.08); }
+.ph-icon { font-size:1rem; }
+.ph-title { font-size:.65rem; font-weight:900; letter-spacing:.08em; }
+.ph-sub   { font-size:.52rem; opacity:.45; margin-top:1px; }
+
+/* ── CARD FLIP (swipe) ── */
+.card-wrap { margin-bottom:9px; perspective:800px; }
+
+/* core badge */
+.core-badge {
+display:inline-block; font-size:.5rem; font-weight:900; letter-spacing:.08em;
+padding:1px 6px; border-radius:8px; margin-bottom:5px;
+background:rgba(200,150,10,.25); color:var(–gold-light); border:1px solid rgba(200,150,10,.3);
+}
+
+.flip-card { width:100%; height:130px; position:relative; transform-style:preserve-3d; transition:transform .55s cubic-bezier(.4,0,.2,1); }
+.flip-card.flipped { transform:rotateY(180deg); }
+.face { position:absolute; inset:0; backface-visibility:hidden; border-radius:10px; overflow:hidden; }
+.face-back {
+background:linear-gradient(135deg,#1a1208,#2a1e0a);
+border:2px solid rgba(200,150,10,.35);
+display:flex; flex-direction:column; align-items:center; justify-content:center;
+cursor:grab; user-select:none;
+}
+.face-back:active { cursor:grabbing; }
+.face-back .card-emoji { font-size:2.6rem; }
+.face-back .card-hint { font-size:.55rem; opacity:.3; margin-top:6px; letter-spacing:.08em; }
+.face-back .swipe-indicator {
+position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+display:flex; gap:4px;
+}
+.swipe-dot { width:18px; height:3px; border-radius:2px; background:rgba(200,150,10,.4); }
+.swipe-dot.active { background:var(–gold-light); }
+
+.face-front {
+transform:rotateY(180deg);
+background:#fff;
+border:2px solid rgba(200,150,10,.5);
+display:flex; flex-direction:column; padding:9px;
+}
+.face-front.done-card { background:#e8f5e9; border-color:rgba(46,125,50,.5); }
+.task-txt  { font-size:.6rem; line-height:1.45; color:var(–ink); flex:1; margin-bottom:5px; }
+.task-pts  { font-size:.58rem; color:#c8690a; font-weight:900; margin-bottom:5px; }
+.task-acts { display:flex; gap:4px; }
+.ta-done { flex:2; background:#2e7d32; color:#fff; }
+.ta-done:active { background:#1b5e20; }
+.ta-skip { flex:1; background:#888; color:#fff; }
+.ta-skip:active { background:#555; }
+.done-stamp {
+text-align:center; font-size:.62rem; color:#2e7d32;
+font-weight:900; padding-top:4px;
+}
+
+/* ── PROGRESS ── */
+.progress-box {
+margin:14px 0; padding:13px 15px;
+background:rgba(200,150,10,.07);
+border:1px solid rgba(200,150,10,.18); border-radius:var(–r);
+}
+.pb-label { font-size:.6rem; opacity:.45; letter-spacing:.15em; margin-bottom:7px; }
+.pb-track { background:rgba(255,255,255,.07); border-radius:20px; height:9px; overflow:hidden; }
+.pb-fill {
+height:100%; border-radius:20px;
+background:linear-gradient(90deg,var(–gold),var(–gold-light));
+transition:width .6s cubic-bezier(.34,1.56,.64,1);
+box-shadow:0 0 10px rgba(240,200,64,.4);
+}
+.pb-stats { display:flex; justify-content:space-between; margin-top:5px; font-size:.58rem; opacity:.55; }
+
+/* ── STAMINA ── */
+.stamina-row {
+display:flex; align-items:center; gap:6px;
+font-size:.65rem; margin-bottom:12px; color:var(–gold);
+}
+.heart { font-size:.9rem; transition:all .2s; }
+.heart.lost { opacity:.2; filter:grayscale(1); }
+
+/* ── ACTION ROW ── */
+.act-row { display:flex; gap:8px; margin-top:14px; }
+
+/* ── SUMMARY OVERLAY ── */
+#sumOverlay {
+position:fixed; inset:0; background:rgba(0,0,0,.93);
+z-index:888; display:none; align-items:center; justify-content:center; padding:18px;
+}
+.sum-box {
+background:var(–paper); color:var(–ink);
+width:100%; max-width:360px; padding:22px;
+border-radius:var(–r); border:3px solid var(–gold);
+box-shadow:0 0 60px rgba(200,150,10,.4);
+}
+.sum-title { font-family:‘Zen Antique’,serif; font-size:1.1rem; text-align:center; margin-bottom:10px; }
+.sum-stars { text-align:center; font-size:1.8rem; margin-bottom:10px; letter-spacing:.15em; }
+.sum-fmt-row { display:flex; gap:6px; margin-bottom:10px; }
+.fmt-btn {
+flex:1; padding:7px; border:1px solid #ccc; border-radius:6px;
+background:#f0e8d0; font-family:‘Noto Serif TC’,serif; font-size:.68rem;
+font-weight:900; cursor:pointer; text-align:center; transition:all .15s;
+}
+.fmt-btn.active { background:var(–ink); color:var(–gold-light); border-color:var(–gold); }
+.sum-content {
+white-space:pre-wrap; font-size:.72rem; line-height:1.75;
+background:#f0e8d0; padding:13px; border-radius:8px;
+max-height:240px; overflow-y:auto;
+border:1px solid #ddd; margin-bottom:12px;
+font-family:monospace;
+}
+.sum-copy-btn { background:#555; color:#fff; margin-bottom:8px; font-size:.8rem; }
+
+/* ── JOURNAL ── */
+.journal-sec { margin-top:28px; }
+.sec-title { font-family:‘Zen Antique’,serif; color:var(–gold); font-size:.85rem; letter-spacing:.2em; margin-bottom:12px; }
+.jitem { background:rgba(255,255,255,.04); border-radius:10px; margin-bottom:7px; overflow:hidden; border:1px solid rgba(255,255,255,.05); }
+.jhead { padding:11px 14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-size:.75rem; }
+.jhead:hover { background:rgba(255,255,255,.04); }
+.jmeta { font-size:.55rem; opacity:.4; margin-top:2px; }
+.jchev { opacity:.35; transition:transform .2s; }
+.jitem.open .jchev { transform:rotate(180deg); }
+.jbody { display:none; padding:12px 14px; border-top:1px solid rgba(255,255,255,.05); }
+.jitem.open .jbody { display:block; }
+.jtxt { width:100%; height:130px; background:rgba(255,255,255,.04); color:var(–paper); font-family:monospace; font-size:.62rem; border:1px solid rgba(255,255,255,.1); border-radius:6px; padding:9px; resize:none; }
+.jdel { margin-top:7px; width:100%; padding:6px; border:none; background:rgba(200,50,50,.2); color:#ff8080; border-radius:5px; font-size:.62rem; cursor:pointer; font-family:‘Noto Serif TC’,serif; }
+
+/* ── PTS POP ── */
+.pts-pop { position:fixed; pointer-events:none; z-index:9999; font-size:1.3rem; font-weight:900; color:var(–gold-light); text-shadow:0 0 10px rgba(240,200,64,.8); animation:ppop 1.1s ease-out forwards; }
+@keyframes ppop { 0%{opacity:1;transform:translateY(0) scale(1)} 60%{opacity:1;transform:translateY(-55px) scale(1.3)} 100%{opacity:0;transform:translateY(-95px) scale(.8)} }
+
+/* ── WEATHER BAR ── */
+.weather-bar { display:flex; align-items:center; gap:8px; padding:8px 14px; margin-bottom:10px; background:rgba(255,255,255,.04); border-radius:10px; border:1px solid rgba(255,255,255,.07); font-size:.7rem; }
+.weather-sel { background:rgba(255,255,255,.08); color:var(–paper); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:3px 7px; font-size:.68rem; font-family:‘Noto Serif TC’,serif; }
+.time-display { margin-left:auto; font-size:.62rem; opacity:.45; }
+
+.hidden { display:none !important; }
+footer { text-align:center; font-size:.57rem; opacity:.18; padding:18px; letter-spacing:.1em; }
+</style>
+
 </head>
 <body>
 
-    <div id="setupOverlay">
-        <div class="setup-box">
-            <h2 style="margin-top:0">🎖️ 探險者登錄</h2>
-            <input type="text" id="userNameInput" class="setup-input" placeholder="冒險者代號">
-            <input type="password" id="passInput" class="setup-input" placeholder="密語">
-            <button class="btn btn-gold" onclick="unlock()">進入系統</button>
-        </div>
-    </div>
+<!-- ═══ SETUP OVERLAY ═══ -->
 
-    <div class="dashboard">
+<div class="overlay" id="setupOverlay">
+  <div class="obox">
+    <h2>🎖️ 任務局登記</h2>
+    <p>選模式、設代號、輸密語</p>
+
+```
+<div style="font-size:.62rem;opacity:.5;letter-spacing:.12em;margin-bottom:7px;">▸ 遊玩模式</div>
+<div class="mode-row">
+  <div class="mode-btn" id="modeSolo" onclick="setMode('solo')">
+    <span class="mode-icon">🧍</span>單人模式
+  </div>
+  <div class="mode-btn" id="modeDuo" onclick="setMode('duo')">
+    <span class="mode-icon">👫</span>雙人模式
+  </div>
+</div>
+
+<input class="inp" id="uName" placeholder="你的代號" type="text">
+<input class="inp" id="u2Name" placeholder="同伴代號（雙人模式）" type="text" id="u2Name" style="display:none">
+<input class="inp" id="uCode" placeholder="任務密語" type="password">
+
+<div style="font-size:.62rem;opacity:.5;letter-spacing:.12em;margin-bottom:7px;" id="roleLabel">▸ 你的角色</div>
+<div class="role-row" id="roleRow">
+  <div class="rcard nav-c" id="rNav" onclick="setRole('nav')">
+    <div class="rcard-icon">🧭</div>
+    <div class="rcard-name" style="color:#7ab4ff">導航長</div>
+    <div class="rcard-desc">建築・路線・隱藏細節</div>
+  </div>
+  <div class="rcard sup-c" id="rSup" onclick="setRole('sup')">
+    <div class="rcard-icon">🍱</div>
+    <div class="rcard-name" style="color:#ff9a9a">補給官</div>
+    <div class="rcard-desc">美食・互動・收集情報</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:8px;margin-top:4px;">
+  <button class="btn btn-gold" onclick="doUnlock()">啟動任務</button>
+  <button class="btn btn-ghost hidden" id="closeSetup" onclick="toggleSetup(false)" style="width:auto;padding:13px 18px;">✕</button>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+
+<div class="header">
+  <div>
+    <div class="htitle">鐵道任務局</div>
+    <div class="hsub">RAILWAY MISSION BUREAU v9</div>
+  </div>
+  <div class="hright" onclick="toggleSetup(true)">
+    <div class="hpts">💰 <span id="hPts">0</span></div>
+    <div class="hmeta"><span id="hRole">---</span> ｜ LV.<span id="hLv">1</span></div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ═══ WHEEL PHASE ═══ -->
+
+  <div id="phaseSpin">
+    <div class="wheel-wrap">
+      <div class="wheel-ptr">▼</div>
+      <canvas id="wheelCanvas" width="270" height="270" onclick="handleWheel()"></canvas>
+      <div class="spin-hint">點擊轉動 → 再點停止 → 揭曉秘境</div>
+    </div>
+    <button class="btn btn-gold" id="spinBtn" onclick="handleWheel()">🎲 開始抽籤</button>
+  </div>
+
+  <!-- ═══ TASK PHASE ═══ -->
+
+  <div id="phaseTask">
+
+```
+<!-- 天氣列 -->
+<div class="weather-bar">
+  <span>🌤</span>
+  <select class="weather-sel" id="weatherSel">
+    <option>☀️ 晴朗</option>
+    <option>☁️ 多雲</option>
+    <option>🌦️ 短暫雨</option>
+    <option>🌧️ 下雨</option>
+    <option>🌫️ 起霧</option>
+  </select>
+  <span class="time-display" id="arriveTime">--:--</span>
+</div>
+
+<!-- 車站揭曉 -->
+<div class="station-hero">
+  <div class="sname mystery" id="sName">❓</div>
+  <div class="ssub" id="sSub">▸ 滑動任務卡揭曉目的地</div>
+</div>
+
+<!-- 體力值 -->
+<div style="padding:10px 12px 0;">
+  <div class="stamina-row">
+    <span style="font-size:.6rem;opacity:.5;letter-spacing:.1em;">體力</span>
+    <span class="heart" id="h1">❤️</span>
+    <span class="heart" id="h2">❤️</span>
+    <span class="heart" id="h3">❤️</span>
+    <span style="margin-left:auto;font-size:.58rem;opacity:.4;">跳過任務 -50P &amp; 失1心</span>
+  </div>
+</div>
+
+<!-- 任務面板 -->
+<div class="panels-wrap" id="panelsWrap">
+  <!-- 動態填入 -->
+</div>
+
+<!-- 進度條 -->
+<div class="progress-box">
+  <div class="pb-label">▸ 任務進度</div>
+  <div class="pb-track"><div class="pb-fill" id="pbFill" style="width:0%"></div></div>
+  <div class="pb-stats">
+    <span id="pbDone">0 / 0 完成</span>
+    <span id="pbPts">本次 +0P</span>
+  </div>
+</div>
+
+<div class="act-row">
+  <button class="btn btn-ghost" onclick="rerollTasks()" style="flex:1;font-size:.78rem;">🔄 重抽任務</button>
+  <button class="btn btn-gold"  onclick="openSummary()" style="flex:2;">🏁 結算存檔</button>
+</div>
+```
+
+  </div>
+
+  <!-- ═══ JOURNAL ═══ -->
+
+  <div class="journal-sec">
+    <div class="sec-title">📜 冒險紀錄</div>
+    <div id="journalList"></div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ═══ SUMMARY OVERLAY ═══ -->
+
+<div id="sumOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:888;display:none;align-items:center;justify-content:center;padding:18px;">
+  <div class="sum-box">
+    <div class="sum-title">📝 任務完結報告</div>
+    <div class="sum-stars" id="sumStars">⭐⭐⭐</div>
+    <div class="sum-content" id="sumContent"></div>
+    <button class="btn btn-sm sum-copy-btn" style="width:100%;margin-bottom:8px;" onclick="copyLog()">📋 複製遊記</button>
+    <button class="btn btn-gold" onclick="saveHistory()">存入紀錄 ＆ 返回</button>
+    <button class="btn btn-ghost" style="margin-top:7px;font-size:.78rem;" onclick="document.getElementById('sumOverlay').style.display='none'">繼續探索</button>
+  </div>
+</div>
+
+<footer>v9.0 MYSTERY EDITION ｜ 鐵道任務局 ｜ © 2026</footer>
+
+<script>
+// ═══════════════════════════════
+//  DATA
+// ═══════════════════════════════
+const STATIONS = ["瑞芳","侯硐","十分","平溪","菁桐","內灣","三義","三坑","集集","車埕","竹田","保安"];
+
+// 各站核心任務（Local Focus）
+const CORE_TASKS = {
+  "瑞芳":  {t:"找到九份老街的第一盞油燈或紅燈籠並拍照", p:200, i:"🏮"},
+  "侯硐":  {t:"找到一隻侯硐的貓並合影（獲得貓的同意）", p:200, i:"🐱"},
+  "十分":  {t:"找到天燈在空中飛的瞬間，拍下來", p:220, i:"🪔"},
+  "平溪":  {t:"找到平溪老街的石板路，踩上去拍腳底照", p:180, i:"🪨"},
+  "菁桐":  {t:"找到菁桐車站的木造月台並在上面合照", p:200, i:"🚉"},
+  "內灣":  {t:"找到內灣戲院舊建築並問當地人它的故事", p:220, i:"🎭"},
+  "三義":  {t:"找到一件木雕作品並描述它雕的是什麼", p:200, i:"🪵"},
+  "三坑":  {t:"找到三坑老街的藍衫或客家元素拍照", p:200, i:"👘"},
+  "集集":  {t:"找到集集綠色隧道的入口並在樹蔭下拍照", p:200, i:"🌳"},
+  "車埕":  {t:"找到車埕木業展示館或舊倉庫拍一張外觀", p:200, i:"🏭"},
+  "竹田":  {t:"找到竹田驛站的日式站房，找出它建造的年份", p:220, i:"⛩️"},
+  "保安":  {t:"在保安車站找到台鐵最古老的站名牌并拍照", p:220, i:"🪧"},
+};
+
+// 導航長通用任務
+const NAV_POOL = [
+  {t:"找到車站最有特色的建築細節拍下來",       p:140, i:"🏛️"},
+  {t:"觀察火車進站，數出幾節車廂",              p:110, i:"🚆"},
+  {t:"找到這裡最古老的東西（建築/招牌/設施）",  p:170, i:"🔍"},
+  {t:"從車站外找到三種不同的交通工具",          p:120, i:"🗺️"},
+  {t:"畫出月台的簡單平面圖（手繪OK）",          p:190, i:"✏️"},
+  {t:"找到時刻表，告訴大家下一班車幾點",        p:100, i:"⏱️"},
+  {t:"發現一個觀光地圖沒標示的有趣地方",        p:210, i:"⭐"},
+  {t:"拍一張「一眼認出這是台灣」的照片",        p:150, i:"📸"},
+  {t:"找到當地廟宇或歷史建物，記下它的名字",    p:160, i:"⛪"},
+  {t:"站在最高處俯拍車站全景",                  p:180, i:"🔭"},
+];
+
+// 補給官通用任務
+const SUP_POOL = [
+  {t:"找到當地特色小吃並問老闆用什麼食材",      p:140, i:"🍱"},
+  {t:"問一位路人推薦這裡必去的地方",            p:170, i:"💬"},
+  {t:"收集這裡的一個免費紀念品（票根/傳單）",   p:110, i:"🎫"},
+  {t:"錄10秒這個地方的環境聲音",                p:120, i:"🎧"},
+  {t:"找到有趣的店名或招牌並拍照",              p:130, i:"🪧"},
+  {t:"跟一個非家人的人合照（先獲得同意）",      p:190, i:"🤝"},
+  {t:"找到今天可以買的最便宜紀念品",            p:100, i:"🛍️"},
+  {t:"描述這裡的氣味：像什麼？讓你想到什麼？",  p:150, i:"👃"},
+  {t:"在當地買一個東西吃，拍下第一口",          p:160, i:"😋"},
+  {t:"找到有趣的路牌或警告標示並拍照",          p:120, i:"⚠️"},
+];
+
+// ═══════════════════════════════
+//  STATE
+// ═══════════════════════════════
+let S = {
+  user:    localStorage.getItem('rmb_user')  || "",
+  user2:   localStorage.getItem('rmb_user2') || "",
+  role:    localStorage.getItem('rmb_role')  || "",
+  mode:    localStorage.getItem('rmb_mode')  || "",   // 'solo' | 'duo'
+  points:  +localStorage.getItem('rmb_pts')  || 0,
+  lv:      +localStorage.getItem('rmb_lv')   || 1,
+  history: JSON.parse(localStorage.getItem('rmb_history') || '[]'),
+  // session
+  station: null, revealed: false,
+  tasks: [],          // [{id, type, core, task, done}]
+  stamina: 3,
+  sessionPts: 0,
+  log: [],
+  arriveTime: null,
+  // wheel
+  angle:0, speed:0, wstatus:"IDLE"
+};
+
+// ═══════════════════════════════
+//  INIT
+// ═══════════════════════════════
+function init() {
+  if (S.user) document.getElementById('setupOverlay').classList.add('hidden');
+  if (S.mode) highlightMode(S.mode);
+  if (S.role) highlightRole(S.role);
+  updateU2Field();
+  updateHeader();
+  renderJournal();
+  drawWheel();
+  requestAnimationFrame(animLoop);
+}
+
+// ═══════════════════════════════
+//  SETUP
+// ═══════════════════════════════
+function toggleSetup(s) {
+  document.getElementById('setupOverlay').classList.toggle('hidden', !s);
+  document.getElementById('closeSetup').classList.toggle('hidden', !S.user);
+  if (s) document.getElementById('uName').value = S.user;
+}
+
+function setMode(m) {
+  S.mode = m;
+  highlightMode(m);
+  updateU2Field();
+  // 單人模式隱藏角色選擇（自動雙角色）
+  const showRole = m === 'duo';
+  document.getElementById('roleLabel').style.display = showRole ? '' : 'none';
+  document.getElementById('roleRow').style.display   = showRole ? '' : 'none';
+}
+function highlightMode(m) {
+  document.getElementById('modeSolo').classList.toggle('sel', m==='solo');
+  document.getElementById('modeDuo').classList.toggle('sel', m==='duo');
+}
+function updateU2Field() {
+  const f = document.getElementById('u2Name');
+  if (f) f.style.display = S.mode==='duo' ? '' : 'none';
+}
+function setRole(r) { S.role = r; highlightRole(r); }
+function highlightRole(r) {
+  document.getElementById('rNav').classList.toggle('sel-nav', r==='nav');
+  document.getElementById('rSup').classList.toggle('sel-sup', r==='sup');
+  document.getElementById('rNav').classList.toggle('sel-sup', false);
+  document.getElementById('rSup').classList.toggle('sel-nav', false);
+}
+
+function doUnlock() {
+  const n  = document.getElementById('uName').value.trim();
+  const n2 = document.getElementById('u2Name') ? document.getElementById('u2Name').value.trim() : '';
+  const c  = document.getElementById('uCode').value.trim();
+  if (!n)          { alert("請輸入代號"); return; }
+  if (c !== "2026"){ alert("密語不正確"); return; }
+  if (!S.mode)     { alert("請選擇模式"); return; }
+  if (S.mode==='duo' && !S.role) { alert("請選擇角色"); return; }
+  S.user = n;
+  if (S.mode==='duo') S.user2 = n2 || '同伴';
+  localStorage.setItem('rmb_user', S.user);
+  localStorage.setItem('rmb_user2', S.user2);
+  localStorage.setItem('rmb_role', S.role);
+  localStorage.setItem('rmb_mode', S.mode);
+  toggleSetup(false);
+  updateHeader();
+}
+
+// ═══════════════════════════════
+//  WHEEL
+// ═══════════════════════════════
+function handleWheel() {
+  if (!S.user) { toggleSetup(true); return; }
+  if (S.wstatus==="IDLE") {
+    S.wstatus="SPINNING"; S.speed = 0.25+Math.random()*.15;
+    document.getElementById('spinBtn').innerText = "🛑 停止！";
+  } else if (S.wstatus==="SPINNING") {
+    S.wstatus="SLOWING";
+    document.getElementById('spinBtn').innerText = "進站中...";
+  }
+}
+function animLoop() {
+  if (S.wstatus==="SPINNING") S.angle += S.speed;
+  else if (S.wstatus==="SLOWING") {
+    S.angle += S.speed; S.speed *= .982;
+    if (S.speed < .0018) { S.wstatus="IDLE"; onSpinEnd(); }
+  }
+  drawWheel();
+  requestAnimationFrame(animLoop);
+}
+function drawWheel() {
+  const cv = document.getElementById('wheelCanvas');
+  const cx = cv.getContext('2d');
+  const W=cv.width, cx_=W/2, R=W/2-4;
+  const slice = Math.PI*2/STATIONS.length;
+  cx.clearRect(0,0,W,W);
+  for (let i=0;i<STATIONS.length;i++) {
+    const s=S.angle+i*slice-Math.PI/2, e=s+slice;
+    cx.beginPath(); cx.moveTo(cx_,cx_); cx.arc(cx_,cx_,R,s,e);
+    cx.fillStyle = i%2?"#c8860a":"#e8b040"; cx.fill();
+    cx.strokeStyle="rgba(10,8,4,.4)"; cx.lineWidth=1.5; cx.stroke();
+    // label — always mystery
+    cx.save(); cx.translate(cx_,cx_); cx.rotate(s+slice/2);
+    cx.textAlign="right"; cx.fillStyle=i%2?"#fff8e0":"#1a0c00";
+    cx.font="900 13px 'Noto Serif TC',serif";
+    cx.fillText("❓秘境", R-10, 5); cx.restore();
+  }
+  // center
+  cx.beginPath(); cx.arc(cx_,cx_,20,0,Math.PI*2);
+  cx.fillStyle="#0e0b07"; cx.fill();
+  cx.strokeStyle="rgba(200,150,10,.5)"; cx.lineWidth=2; cx.stroke();
+  cx.fillStyle="#c8960a"; cx.font="900 14px serif";
+  cx.textAlign="center"; cx.textBaseline="middle";
+  cx.fillText("局",cx_,cx_); cx.textBaseline="alphabetic";
+}
+function onSpinEnd() {
+  const slice=Math.PI*2/STATIONS.length;
+  const norm=((-S.angle%(Math.PI*2))+(Math.PI*2))%(Math.PI*2);
+  S.station = STATIONS[Math.floor(norm/slice)%STATIONS.length];
+  document.getElementById('spinBtn').innerText = "🎲 開始抽籤";
+  setTimeout(()=>{
+    document.getElementById('phaseSpin').style.display='none';
+    document.getElementById('phaseTask').style.display='block';
+    // station still hidden
+    document.getElementById('sName').innerText = "❓";
+    document.getElementById('sName').classList.add('mystery');
+    document.getElementById('sSub').innerText = "▸ 翻開第一張任務牌，揭曉目的地";
+    S.revealed=false; S.stamina=3; S.sessionPts=0; S.log=[];
+    S.arriveTime = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('arriveTime').innerText = "抵達 "+S.arriveTime;
+    renderStamina();
+    buildTasks();
+  },400);
+}
+
+// ═══════════════════════════════
+//  TASKS
+// ═══════════════════════════════
+function shuffle(a){ return [...a].sort(()=>Math.random()-.5); }
+
+function buildTasks() {
+  const core = CORE_TASKS[S.station] || {t:`探索${S.station}站最有特色的地方並拍照`,p:200,i:"⭐"};
+  if (S.mode==='solo') {
+    // 單人：1核心 + 2導航 + 2補給 = 5張
+    const navPick = shuffle(NAV_POOL).slice(0,2);
+    const supPick = shuffle(SUP_POOL).slice(0,2);
+    S.tasks = [
+      {id:'c0', type:'solo', core:true,  task:core},
+      {id:'n0', type:'solo', core:false, task:navPick[0]},
+      {id:'n1', type:'solo', core:false, task:navPick[1]},
+      {id:'s0', type:'solo', core:false, task:supPick[0]},
+      {id:'s1', type:'solo', core:false, task:supPick[1]},
+    ].map(t=>({...t, done:false, skipped:false}));
+  } else {
+    // 雙人：導航長 1核心+2通用, 補給官 1核心+2通用
+    const navPick = shuffle(NAV_POOL).slice(0,2);
+    const supPick = shuffle(SUP_POOL).slice(0,2);
+    S.tasks = [
+      {id:'nc', type:'nav', core:true,  task:core},
+      {id:'n0', type:'nav', core:false, task:navPick[0]},
+      {id:'n1', type:'nav', core:false, task:navPick[1]},
+      {id:'sc', type:'sup', core:true,  task:core},
+      {id:'s0', type:'sup', core:false, task:supPick[0]},
+      {id:'s1', type:'sup', core:false, task:supPick[1]},
+    ].map(t=>({...t, done:false, skipped:false}));
+  }
+  renderPanels();
+  updateProgress();
+}
+
+function rerollTasks() {
+  if (!confirm("重新抽取所有任務？（目前進度歸零）")) return;
+  buildTasks();
+}
+
+function renderPanels() {
+  const wrap = document.getElementById('panelsWrap');
+  if (S.mode==='solo') {
+    wrap.innerHTML = `<div class="panel-single" id="soloPanel"></div>`;
+    document.getElementById('soloPanel').innerHTML = S.tasks.map(t=>cardHTML(t)).join('');
+  } else {
+    const navT = S.tasks.filter(t=>t.type==='nav');
+    const supT = S.tasks.filter(t=>t.type==='sup');
+    const myRole = S.role;
+    const navName = myRole==='nav'?S.user:S.user2;
+    const supName = myRole==='sup'?S.user:S.user2;
+    wrap.innerHTML=`
+      <div class="panel-duo">
+        <div class="panel-nav">
+          <div class="ph"><span class="ph-icon">🧭</span><div><div class="ph-title" style="color:#7ab4ff">導航長</div><div class="ph-sub">${navName}</div></div></div>
+          <div id="navPanel">${navT.map(t=>cardHTML(t)).join('')}</div>
+        </div>
+        <div class="panel-sup">
+          <div class="ph"><span class="ph-icon">🍱</span><div><div class="ph-title" style="color:#ff9a9a">補給官</div><div class="ph-sub">${supName}</div></div></div>
+          <div id="supPanel">${supT.map(t=>cardHTML(t)).join('')}</div>
+        </div>
+      </div>`;
+  }
+  attachSwipeListeners();
+}
+
+function cardHTML(task) {
+  if (task.done) {
+    return `<div class="card-wrap"><div class="flip-card flipped" id="card-${task.id}">
+      <div class="face face-back"><div class="card-emoji">${task.task.i}</div></div>
+      <div class="face face-front done-card">
+        ${task.core?'<span class="core-badge">⭐ 核心任務</span>':''}
+        <div class="task-txt">${task.task.t}</div>
+        <div class="task-pts">+${task.task.p}P</div>
+        <div class="done-stamp">✓ 完成</div>
+      </div></div></div>`;
+  }
+  return `<div class="card-wrap"><div class="flip-card" id="card-${task.id}">
+    <div class="face face-back">
+      <div class="card-emoji">${task.task.i}</div>
+      <div class="card-hint">← 左滑揭開任務 →</div>
+      <div class="swipe-indicator">
+        <div class="swipe-dot active"></div><div class="swipe-dot"></div><div class="swipe-dot"></div>
+      </div>
+    </div>
+    <div class="face face-front">
+      ${task.core?'<span class="core-badge">⭐ 核心任務</span>':''}
+      <div class="task-txt">${task.task.t}</div>
+      <div class="task-pts">+${task.task.p}P</div>
+      <div class="task-acts">
+        <button class="btn-sm ta-done" onclick="doneTask('${task.id}',event)">✅ 完成</button>
+        <button class="btn-sm ta-skip" onclick="skipTask('${task.id}',event)">⏭ 跳過</button>
+      </div>
+    </div>
+  </div></div>`;
+}
+
+// ─── 滑動翻牌 ───
+function attachSwipeListeners() {
+  document.querySelectorAll('.flip-card:not(.flipped)').forEach(card => {
+    let startX=0, startY=0, moved=false;
+    const onStart = e => {
+      const t = e.touches?e.touches[0]:e;
+      startX=t.clientX; startY=t.clientY; moved=false;
+    };
+    const onMove = e => {
+      const t = e.touches?e.touches[0]:e;
+      const dx=t.clientX-startX, dy=t.clientY-startY;
+      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>20) {
+        moved=true;
+        if (e.cancelable) e.preventDefault();
+      }
+    };
+    const onEnd = e => {
+      const t = e.changedTouches?e.changedTouches[0]:e;
+      const dx=t.clientX-startX;
+      if (moved && Math.abs(dx)>40) {
+        card.classList.add('flipped');
+        revealStation();
+      }
+    };
+    card.addEventListener('touchstart', onStart, {passive:true});
+    card.addEventListener('touchmove',  onMove,  {passive:false});
+    card.addEventListener('touchend',   onEnd);
+    // mouse fallback
+    card.addEventListener('mousedown',  onStart);
+    card.addEventListener('mousemove',  e=>{if(e.buttons)onMove(e);});
+    card.addEventListener('mouseup',    onEnd);
+  });
+}
+
+function revealStation() {
+  if (S.revealed) return;
+  S.revealed = true;
+  const el = document.getElementById('sName');
+  el.innerText = S.station;
+  el.classList.remove('mystery');
+  document.getElementById('sSub').innerText = `🚂 抵達：${S.station}站`;
+}
+
+// ─── 完成/跳過 ───
+function doneTask(id, e) {
+  e && e.stopPropagation();
+  const task = S.tasks.find(t=>t.id===id);
+  if (!task || task.done) return;
+  task.done = true;
+  S.sessionPts += task.task.p;
+  const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const w = document.getElementById('weatherSel').value;
+  S.log.push({time:now, weather:w, action:"完成", desc:task.task.t, pts:task.task.p});
+  renderPanels();
+  updateProgress();
+  showPtsPop('+'+task.task.p+'P', e);
+}
+
+function skipTask(id, e) {
+  e && e.stopPropagation();
+  if (S.stamina <= 0) { alert("體力耗盡！無法再跳過任務。"); return; }
+  const task = S.tasks.find(t=>t.id===id);
+  if (!task || task.done) return;
+  // core tasks cannot be skipped for free — double cost
+  const cost = task.core ? 100 : 50;
+  S.sessionPts = Math.max(0, S.sessionPts - cost);
+  S.stamina--;
+  const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const w = document.getElementById('weatherSel').value;
+  S.log.push({time:now, weather:w, action:"跳過", desc:task.task.t, pts:-cost});
+  // replace with new task from pool
+  const pool = task.type==='nav'||task.id.startsWith('n')?NAV_POOL:SUP_POOL;
+  const used = S.tasks.map(t=>t.task.t);
+  const avail = pool.filter(p=>!used.includes(p.t));
+  if (avail.length>0) {
+    task.task = avail[Math.floor(Math.random()*avail.length)];
+    task.core = false;
+  }
+  task.done = false;
+  renderStamina();
+  renderPanels();
+  updateProgress();
+  showPtsPop('-'+cost+'P', e);
+}
+
+function renderStamina() {
+  [1,2,3].forEach(i=>{
+    document.getElementById('h'+i).classList.toggle('lost', i>S.stamina);
+  });
+}
+
+function updateProgress() {
+  const total = S.tasks.length;
+  const done  = S.tasks.filter(t=>t.done).length;
+  const pct   = total>0 ? (done/total)*100 : 0;
+  document.getElementById('pbFill').style.width = pct+'%';
+  document.getElementById('pbDone').innerText = `${done} / ${total} 完成`;
+  document.getElementById('pbPts').innerText  = `本次 +${S.sessionPts}P`;
+  updateHeader();
+}
+
+// ═══════════════════════════════
+//  SUMMARY & LOG
+// ═══════════════════════════════
+function openSummary() {
+  const total=S.tasks.length, done=S.tasks.filter(t=>t.done).length;
+  const rate=total>0?done/total:0;
+  const stars=rate>=.8?"⭐⭐⭐":rate>=.5?"⭐⭐":"⭐";
+  document.getElementById('sumStars').innerText=stars;
+  document.getElementById('sumContent').innerText = buildLog();
+  document.getElementById('sumOverlay').style.display='flex';
+}
+
+function buildLog() {
+  const d=new Date(), dateStr=`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+  const weather=S.log.length>0?S.log[S.log.length-1].weather:"不詳";
+  const modeLabel=S.mode==='solo'?'單人模式':`雙人模式（${S.user} & ${S.user2}）`;
+  const roleLabel=S.mode==='duo'?(S.role==='nav'?'導航長':'補給官'):'';
+  const total=S.tasks.length, done=S.tasks.filter(t=>t.done).length;
+  const rate=total>0?Math.round(done/total*100):0;
+
+  let txt='';
+  txt+=`【鐵道冒險日誌】\n`;
+  txt+=`日期：${dateStr}\n`;
+  txt+=`天氣：${weather}\n`;
+  txt+=`目的地：${S.station||'未揭曉'}站\n`;
+  txt+=`探險者：${S.user}${S.mode==='duo'?`・${S.user2}`:''}`;
+  if (roleLabel) txt+=`（${roleLabel}）`;
+  txt+='\n';
+  txt+=`模式：${modeLabel}\n`;
+  txt+=`${'─'.repeat(24)}\n\n`;
+
+  if (S.log.length>0) {
+    txt+='▸ 任務紀錄\n';
+    S.log.forEach(l=>{
+      const mark=l.action==='完成'?'✓':'✗';
+      txt+=`${mark} [${l.time}／${l.weather.split(' ')[1]||''}]  ${l.desc}\n`;
+      txt+=`   ${l.action==='完成'?'+':''}${l.pts}P\n\n`;
+    });
+  } else {
+    txt+='今日靜靜在月台感受了風的流動。\n\n';
+  }
+
+  txt+=`${'─'.repeat(24)}\n`;
+  txt+=`完成率：${rate}%（${done}/${total}）\n`;
+  txt+=`體力消耗：${3-S.stamina}/3 心\n`;
+  txt+=`本次積分：+${S.sessionPts}P\n`;
+  txt+=`累積積分：${S.points+S.sessionPts}P\n`;
+  return txt;
+}
+
+function copyLog() {
+  const txt=document.getElementById('sumContent').innerText;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(()=>alert("已複製到剪貼簿！"));
+  } else {
+    const ta=document.createElement('textarea');
+    ta.value=txt; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove(); alert("已複製！");
+  }
+}
+
+function saveHistory() {
+  S.history.unshift({
+    date:new Date().toLocaleDateString(),
+    station:S.station||'未揭曉',
+    pts:S.sessionPts,
+    mode:S.mode, role:S.role,
+    fullText:document.getElementById('sumContent').innerText
+  });
+  S.points += S.sessionPts;
+  S.lv = Math.floor(S.points/800)+1;
+  localStorage.setItem('rmb_history', JSON.stringify(S.history));
+  localStorage.setItem('rmb_pts',     S.points);
+  localStorage.setItem('rmb_lv',      S.lv);
+  // reset
+  S.station=null; S.revealed=false;
+  S.tasks=[]; S.sessionPts=0; S.log=[]; S.stamina=3;
+  document.getElementById('sumOverlay').style.display='none';
+  document.getElementById('phaseTask').style.display='none';
+  document.getElementById('phaseSpin').style.display='block';
+  updateHeader(); renderJournal();
+}
+
+// ═══════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════
+function updateHeader() {
+  document.getElementById('hPts').innerText = S.points+S.sessionPts;
+  document.getElementById('hLv').innerText  = S.lv;
+  let rl='---';
+  if (S.mode==='solo') rl='🧍單人';
+  else if (S.mode==='duo') rl=S.role==='nav'?'🧭導航長':'🍱補給官';
+  document.getElementById('hRole').innerText=rl;
+}
+
+function showPtsPop(txt, e) {
+  const el=document.createElement('div');
+  el.className='pts-pop'; el.innerText=txt;
+  const x=e?e.clientX-20:window.innerWidth/2;
+  const y=e?e.clientY-10:window.innerHeight/2;
+  el.style.left=x+'px'; el.style.top=y+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1200);
+}
+
+function renderJournal() {
+  const list=document.getElementById('journalList');
+  if (!S.history.length) {
+    list.innerHTML='<div style="text-align:center;opacity:.22;padding:20px;font-size:.72rem;">尚無紀錄</div>';
+    return;
+  }
+  list.innerHTML=S.history.map((h,i)=>`
+    <div class="jitem" id="ji${i}">
+      <div class="jhead" onclick="document.getElementById('ji${i}').classList.toggle('open')">
         <div>
-            <span class="lv-tag">LV.<span id="ui-lv">1</span></span>
-            <div id="ui-title" style="color:var(--gold-light); font-weight:900; font-size:0.8rem; margin-top:3px;">初級冒險者</div>
-            <div id="ui-name" style="font-size:0.6rem; opacity:0.6;">---</div>
+          <div>📅 ${h.date} ・ ${h.station}站</div>
+          <div class="jmeta">${h.mode==='duo'?(h.role==='nav'?'🧭導航長':'🍱補給官'):'🧍單人'} ｜ +${h.pts||0}P</div>
         </div>
-        <div class="pts-count"><span id="ui-pts">0</span> P</div>
-    </div>
+        <span class="jchev">▼</span>
+      </div>
+      <div class="jbody">
+        <textarea class="jtxt" readonly>${h.fullText}</textarea>
 
-    <div class="main">
-        <div id="phaseSpin">
-            <div style="text-align:center; margin-bottom:10px;">
-                <div style="color:var(--gold-light); font-size:2rem; animation: bounce 2s infinite;">▼</div>
-                <canvas id="wheelCanvas" width="300" height="300" onclick="spin()"></canvas>
-            </div>
-            <button class="btn btn-gold" id="spinBtn" onclick="spin()">🎲 抽取神秘站點</button>
-            <p style="text-align:center; font-size:0.65rem; opacity:0.4; margin-top:15px;">※ 轉盤文字已隱藏，停下時方可揭曉</p>
-        </div>
+```
+    <button class="jdel" onclick="delHistory(${i})">🗑️ 刪除</button>
+  </div>
+</div>`).join('');
+```
 
-        <div id="phaseTask" class="hide">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 2px solid var(--gold); padding-bottom:10px;">
-                <h1 id="stationName" style="font-family:'Zen Antique'; font-size:3.5rem; margin:0; line-height:1; color:var(--gold-light);">---</h1>
-                <select id="weatherSelect" style="background:transparent; color:white; border:1px solid #555; font-size:0.8rem; padding:4px;">
-                    <option>☀️ 晴朗</option><option>☁️ 多雲</option><option>🌧️ 下雨</option><option>❄️ 寒冷</option>
-                </select>
-            </div>
+}
 
-            <div class="mission-grid" id="missionGrid"></div>
-            
-            <button class="btn btn-gold" onclick="generateNote()">🏁 結束探索並生成遊記</button>
-            <button class="btn" style="background:transparent; color:white; width:100%; margin-top:10px; font-size:0.7rem;" onclick="location.reload()">放棄本次任務</button>
-        </div>
-    </div>
+function delHistory(i) {
+if (!confirm(“確定刪除？”)) return;
+S.history.splice(i,1);
+localStorage.setItem(‘rmb_history’,JSON.stringify(S.history));
+renderJournal();
+}
 
-    <div id="rewardPopup">
-        <div class="setup-box">
-            <div style="font-size:3rem;">🏆</div>
-            <h3>解鎖新稱號！</h3>
-            <h1 id="newTitleLabel" style="color:var(--gold); margin:10px 0;">---</h1>
-            <button class="btn btn-gold" onclick="closeReward()">收下榮耀</button>
-        </div>
-    </div>
+init();
+</script>
 
-    <footer>v9.1 STABLE | RAILWAY SURVIVOR</footer>
-
-    <script>
-        // ── 數據定義 ──
-        const STATIONS = ["瑞芳","侯硐","十分","平溪","菁桐","內灣","三義","三坑","集集","車埕"];
-        const TASK_POOL = [
-            {t:"拍下車站獨有的建築構造", p:150, i:"📸", c:"景觀"},
-            {t:"錄製一段火車離站的聲音", p:200, i:"🎧", c:"聽覺"},
-            {t:"尋找當地最老的店鋪招牌", p:120, i:"🪧", c:"文化"},
-            {t:"描述車站當下的氣味並紀錄", p:100, i:"👃", c:"感官"},
-            {t:"與車站名稱合照(指定姿勢)", p:150, i:"🙋", c:"互動"},
-            {t:"買一份當地限定點心拍照", p:130, i:"🍱", c:"美食"},
-            {t:"找到地圖沒標示的隱藏景點", p:250, i:"🔍", c:"探險"}
-        ];
-        const TITLES = [
-            {min:0, name:"初級冒險者"},
-            {min:800, name:"鐵道步行者"},
-            {min:2000, name:"支線觀察員"},
-            {min:5000, name:"黃金導航長"},
-            {min:10000, name:"傳奇鐵道大師"}
-        ];
-
-        // ── 系統狀態 ──
-        let state = {
-            user: localStorage.getItem('v9_user') || "",
-            pts: parseInt(localStorage.getItem('v9_pts')) || 0,
-            title: localStorage.getItem('v9_title') || "初級冒險者",
-            currentStation: null, log: [],
-            angle: 0, speed: 0, status: "IDLE"
-        };
-
-        // ── 初始化 ──
-        function init() {
-            if(state.user) {
-                document.getElementById('setupOverlay').classList.add('hide');
-                document.getElementById('userNameInput').value = state.user;
-            }
-            updateUI();
-            drawWheel();
-            requestAnimationFrame(animateLoop);
-        }
-
-        function unlock() {
-            const n = document.getElementById('userNameInput').value.trim();
-            const p = document.getElementById('passInput').value.trim();
-            if(!n) return alert("請輸入代號");
-            if(p !== "2026") return alert("密語錯誤");
-            
-            state.user = n;
-            localStorage.setItem('v9_user', n);
-            document.getElementById('setupOverlay').classList.add('hide');
-            updateUI();
-        }
-
-        // ── 轉盤邏輯 ──
-        function spin() {
-            if(state.status === "IDLE") {
-                state.status = "SPINNING";
-                state.speed = 0.25 + Math.random() * 0.1;
-                document.getElementById('spinBtn').innerText = "🛑 停止";
-            } else if(state.status === "SPINNING") {
-                state.status = "SLOWING";
-                document.getElementById('spinBtn').innerText = "進站中...";
-            }
-        }
-
-        function animateLoop() {
-            if(state.status === "SPINNING") {
-                state.angle += state.speed;
-            } else if(state.status === "SLOWING") {
-                state.angle += state.speed;
-                state.speed *= 0.985;
-                if(state.speed < 0.002) {
-                    state.status = "IDLE";
-                    onSpinStop();
-                }
-            }
-            drawWheel();
-            requestAnimationFrame(animateLoop);
-        }
-
-        function drawWheel() {
-            const ctx = document.getElementById('wheelCanvas').getContext('2d');
-            const slice = (Math.PI * 2) / STATIONS.length;
-            ctx.clearRect(0,0,300,300);
-            
-            for(let i=0; i<STATIONS.length; i++) {
-                const s = state.angle + i * slice - Math.PI/2;
-                ctx.beginPath(); ctx.moveTo(150,150); ctx.arc(150,150,140,s,s+slice);
-                ctx.fillStyle = i % 2 ? "#c8960a" : "#f0c840";
-                ctx.fill(); ctx.stroke();
-                
-                // 蓋牌邏輯：轉動時顯示「?」，停下後顯示名稱
-                ctx.save(); ctx.translate(150,150); ctx.rotate(s + slice/2);
-                ctx.textAlign = "right"; ctx.fillStyle = "black"; ctx.font = "900 16px serif";
-                ctx.fillText("❓", 130, 8);
-                ctx.restore();
-            }
-        }
-
-        function onSpinStop() {
-            const slice = (Math.PI * 2) / STATIONS.length;
-            const norm = ((-state.angle % (Math.PI*2)) + (Math.PI*2)) % (Math.PI*2);
-            state.currentStation = STATIONS[Math.floor(norm / slice) % STATIONS.length];
-            
-            setTimeout(() => {
-                document.getElementById('phaseSpin').classList.add('hide');
-                document.getElementById('phaseTask').classList.remove('hide');
-                document.getElementById('stationName').innerText = state.currentStation;
-                spawnMissions();
-            }, 600);
-        }
-
-        // ── 任務邏輯 ──
-        function spawnMissions() {
-            const grid = document.getElementById('missionGrid');
-            grid.innerHTML = '';
-            const tasks = [...TASK_POOL].sort(() => 0.5 - Math.random()).slice(0, 3);
-            
-            tasks.forEach((task, idx) => {
-                const card = document.createElement('div');
-                card.className = 'mystery-card';
-                card.innerHTML = `
-                    <div class="card-inner">
-                        <div class="card-back">📦</div>
-                        <div class="card-front">
-                            <span class="task-cat">${task.c}</span>
-                            <div class="task-text">${task.t}</div>
-                            <div style="color:var(--gold); font-weight:900; font-size:0.7rem;">+${task.p}P</div>
-                            <button class="btn-done" onclick="completeTask('${task.t}', ${task.p}, event)">完成</button>
-                        </div>
-                    </div>`;
-                card.onclick = function() { this.classList.add('flipped'); };
-                grid.appendChild(card);
-            });
-        }
-
-        function completeTask(title, p, e) {
-            e.stopPropagation();
-            const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            state.log.push({ time, title, p });
-            state.pts += p;
-            alert(`完成任務！獲得 ${p}P`);
-            updateUI();
-            checkTitleUpdate();
-        }
-
-        // ── 遊記生成 ──
-        function generateNote() {
-            const weather = document.getElementById('weatherSelect').value;
-            let note = `【鐵道冒險紀錄】\n站點：${state.currentStation}\n天氣：${weather}\n冒險者：${state.user} (${state.title})\n\n任務軌跡：\n`;
-            
-            if(state.log.length === 0) {
-                note += "在月台觀察火車動態，享受靜謐時光。";
-            } else {
-                state.log.forEach(l => {
-                    note += `● [${l.time}] ${l.title} (+${l.p}P)\n`;
-                });
-            }
-            
-            note += `\n本次總計獲得：${state.log.reduce((a,b)=>a+b.p, 0)} P\n系統時間：${new Date().toLocaleString()}`;
-            
-            // 存入紀錄 (僅展示 alert，可改為儲存到 localStorage)
-            console.log(note);
-            alert("遊記已生成！(已輸出至控制台)\n系統將重新啟動。");
-            localStorage.setItem('v9_pts', state.pts);
-            location.reload();
-        }
-
-        // ── UI 更新 ──
-        function updateUI() {
-            document.getElementById('ui-name').innerText = state.user;
-            document.getElementById('ui-pts').innerText = state.pts;
-            document.getElementById('ui-lv').innerText = Math.floor(state.pts / 800) + 1;
-            document.getElementById('ui-title').innerText = state.title;
-        }
-
-        function checkTitleUpdate() {
-            const newT = [...TITLES].reverse().find(t => state.pts >= t.min).name;
-            if(newT !== state.title) {
-                state.title = newT;
-                localStorage.setItem('v9_title', newT);
-                document.getElementById('newTitleLabel').innerText = newT;
-                document.getElementById('rewardPopup').style.display = 'flex';
-                updateUI();
-            }
-        }
-
-        function closeReward() {
-            document.getElementById('rewardPopup').style.display = 'none';
-        }
-
-        window.onload = init;
-    </script>
 </body>
 </html>
