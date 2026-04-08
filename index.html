@@ -2,253 +2,297 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>🚆 鐵道任務局 v9 - 盲盒生存版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🚆 鐵道任務局 v9.1 - Hotfix</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Zen+Antique&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0f0c08; --paper: #f7eed8; --ink: #1a1008; --gold: #c8960a; --gold-light: #f0c840; --radius: 14px; }
-        body { background: var(--bg); color: var(--paper); font-family: 'Noto Serif TC', serif; min-height: 100vh; margin: 0; overflow-x: hidden; }
+        :root { --bg: #0f0c08; --paper: #f7eed8; --ink: #1a1008; --gold: #c8960a; --gold-light: #f0c840; }
+        body { background: var(--bg); color: var(--paper); font-family: 'Noto Serif TC', serif; margin: 0; padding: 0; overflow-x: hidden; }
         
-        /* ── 頂部數據 ── */
-        .dashboard { padding: 15px 20px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: flex-end; }
-        .user-info { font-size: 0.8rem; }
-        .lv-tag { background: var(--gold); color: black; padding: 2px 6px; border-radius: 4px; font-weight: 900; font-size: 0.6rem; }
-        .pts-count { color: var(--gold-light); font-size: 1.4rem; font-weight: 900; }
+        /* ── Setup Overlay ── */
+        #setupOverlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .setup-box { background: var(--paper); padding: 30px; border-radius: 14px; color: var(--ink); width: 100%; max-width: 300px; text-align: center; border: 4px solid var(--gold); }
+        .setup-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
 
-        /* ── 盲盒任務卡 ── */
+        /* ── Dashboard ── */
+        .dashboard { padding: 15px 20px; background: rgba(26,18,8,0.95); border-bottom: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .lv-tag { background: var(--gold); color: black; padding: 2px 8px; border-radius: 4px; font-weight: 900; font-size: 0.7rem; }
+        .pts-count { color: var(--gold-light); font-size: 1.2rem; font-weight: 900; }
+
+        /* ── Main ── */
+        .main { padding: 20px; max-width: 440px; margin: 0 auto; min-height: 80vh; }
+        .hide { display: none !important; }
+
+        /* ── 任務卡片 ── */
         .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
-        .mystery-card { 
-            height: 160px; perspective: 1000px; cursor: pointer; 
-        }
-        .card-inner { 
-            position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; 
-        }
+        .mystery-card { height: 160px; perspective: 1000px; cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
         .mystery-card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; text-align: center; box-sizing: border-box; }
+        .card-back { background: #222; border: 2px solid var(--gold); color: var(--gold); font-size: 2.2rem; }
+        .card-front { background: white; color: var(--ink); transform: rotateY(180deg); border: 2px solid var(--gold); }
         
-        .card-front, .card-back { 
-            position: absolute; inset: 0; backface-visibility: hidden; border-radius: 10px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px;
-        }
-        .card-back { background: linear-gradient(135deg, #222, #444); border: 2px solid var(--gold); color: var(--gold); font-size: 2.5rem; }
-        .card-front { background: var(--paper); color: var(--ink); transform: rotateY(180deg); border: 2px solid white; }
-        
-        .cat-tag { font-size: 0.5rem; background: var(--ink); color: white; padding: 2px 5px; border-radius: 3px; margin-bottom: 5px; }
-        .task-title { font-size: 0.65rem; font-weight: 900; line-height: 1.3; height: 50px; display: flex; align-items: center; }
-        
-        /* ── 稱號獎勵系統 ── */
-        .reward-popup {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: var(--paper); color: var(--ink); padding: 30px; border-radius: 20px;
-            border: 5px solid var(--gold); z-index: 1000; text-align: center; display: none;
-            box-shadow: 0 0 100px rgba(240,200,64,0.5); animation: pop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.28);
-        }
-        @keyframes pop { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } }
+        .task-cat { font-size: 0.55rem; background: var(--ink); color: white; padding: 2px 6px; border-radius: 4px; margin-bottom: 5px; }
+        .task-text { font-size: 0.65rem; font-weight: 700; line-height: 1.3; flex-grow: 1; display: flex; align-items: center; }
 
         /* ── 按鈕 ── */
-        .btn { border: none; padding: 12px; border-radius: 50px; font-weight: 900; font-family: inherit; cursor: pointer; transition: 0.2s; }
-        .btn-gold { background: var(--gold); color: black; width: 100%; }
-        .btn-done { background: #2e7d32; color: white; width: 100%; font-size: 0.7rem; margin-top: 5px; }
+        .btn { border: none; padding: 14px; border-radius: 50px; font-weight: 900; cursor: pointer; font-family: inherit; transition: 0.2s; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #000; width: 100%; }
+        .btn-done { background: #2e7d32; color: white; width: 100%; font-size: 0.65rem; padding: 8px; margin-top: 5px; border-radius: 5px; }
 
-        .hide { display: none; }
-        .main { padding: 20px; max-width: 440px; margin: 0 auto; }
-        canvas { background: #111; border-radius: 50%; border: 4px solid var(--gold); }
+        /* ── 獎勵彈窗 ── */
+        #rewardPopup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 30px; }
+        
+        footer { text-align: center; font-size: 0.6rem; opacity: 0.3; padding: 30px; }
     </style>
 </head>
 <body>
 
-    <div id="setupOverlay" style="position:fixed; inset:0; background:black; z-index:999; display:flex; align-items:center; justify-content:center; padding:20px;">
-        <div style="background:var(--paper); padding:30px; border-radius:15px; color:var(--ink); width:100%; max-width:300px; text-align:center;">
-            <h2>探險者登錄</h2>
-            <input type="text" id="userNameInput" placeholder="輸入冒險代號" style="width:100%; padding:10px; margin-bottom:10px;">
-            <input type="password" id="passInput" placeholder="密語" style="width:100%; padding:10px; margin-bottom:15px;">
-            <button class="btn btn-gold" onclick="unlock()">啟動</button>
+    <div id="setupOverlay">
+        <div class="setup-box">
+            <h2 style="margin-top:0">🎖️ 探險者登錄</h2>
+            <input type="text" id="userNameInput" class="setup-input" placeholder="冒險者代號">
+            <input type="password" id="passInput" class="setup-input" placeholder="密語">
+            <button class="btn btn-gold" onclick="unlock()">進入系統</button>
         </div>
     </div>
 
     <div class="dashboard">
-        <div class="user-info">
+        <div>
             <span class="lv-tag">LV.<span id="ui-lv">1</span></span>
-            <div id="ui-title" style="color:var(--gold-light); font-weight:900; margin-top:4px;">菜鳥探險家</div>
-            <div id="ui-name" style="opacity:0.6; font-size:0.7rem;">---</div>
+            <div id="ui-title" style="color:var(--gold-light); font-weight:900; font-size:0.8rem; margin-top:3px;">初級冒險者</div>
+            <div id="ui-name" style="font-size:0.6rem; opacity:0.6;">---</div>
         </div>
         <div class="pts-count"><span id="ui-pts">0</span> P</div>
     </div>
 
     <div class="main">
-        <div id="phaseSpin" style="text-align:center;">
-            <div style="color:var(--gold-light); font-size:1.5rem;">▼</div>
-            <canvas id="wheelCanvas" width="300" height="300" onclick="spin()"></canvas>
-            <p style="font-size:0.7rem; opacity:0.5; margin-top:15px;">點擊轉盤抽取出發站點</p>
-            <button class="btn btn-gold" style="margin-top:10px;" onclick="spin()">🎲 抽取車站</button>
+        <div id="phaseSpin">
+            <div style="text-align:center; margin-bottom:10px;">
+                <div style="color:var(--gold-light); font-size:2rem; animation: bounce 2s infinite;">▼</div>
+                <canvas id="wheelCanvas" width="300" height="300" onclick="spin()"></canvas>
+            </div>
+            <button class="btn btn-gold" id="spinBtn" onclick="spin()">🎲 抽取神秘站點</button>
+            <p style="text-align:center; font-size:0.65rem; opacity:0.4; margin-top:15px;">※ 轉盤文字已隱藏，停下時方可揭曉</p>
         </div>
 
         <div id="phaseTask" class="hide">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h1 id="stationName" style="font-family:'Zen Antique'; font-size:3rem; margin:0; color:var(--gold-light);">---</h1>
-                <div style="text-align:right;">
-                    <select id="weatherSelect" style="background:transparent; color:white; border:1px solid #444;">
-                        <option>☀️ 晴朗</option><option>🌧️ 下雨</option><option>☁️ 多雲</option>
-                    </select>
-                </div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 2px solid var(--gold); padding-bottom:10px;">
+                <h1 id="stationName" style="font-family:'Zen Antique'; font-size:3.5rem; margin:0; line-height:1; color:var(--gold-light);">---</h1>
+                <select id="weatherSelect" style="background:transparent; color:white; border:1px solid #555; font-size:0.8rem; padding:4px;">
+                    <option>☀️ 晴朗</option><option>☁️ 多雲</option><option>🌧️ 下雨</option><option>❄️ 寒冷</option>
+                </select>
             </div>
 
             <div class="mission-grid" id="missionGrid"></div>
             
-            <button class="btn btn-gold" onclick="settle()">🏁 結算本次遊記</button>
+            <button class="btn btn-gold" onclick="generateNote()">🏁 結束探索並生成遊記</button>
+            <button class="btn" style="background:transparent; color:white; width:100%; margin-top:10px; font-size:0.7rem;" onclick="location.reload()">放棄本次任務</button>
         </div>
     </div>
 
-    <div id="rewardPopup" class="reward-popup">
-        <div style="font-size:3rem;">🏆</div>
-        <h3>獲得新稱號！</h3>
-        <h1 id="newTitle" style="color:var(--gold);">---</h1>
-        <button class="btn btn-gold" onclick="this.parentElement.style.display='none'">收下獎勵</button>
+    <div id="rewardPopup">
+        <div class="setup-box">
+            <div style="font-size:3rem;">🏆</div>
+            <h3>解鎖新稱號！</h3>
+            <h1 id="newTitleLabel" style="color:var(--gold); margin:10px 0;">---</h1>
+            <button class="btn btn-gold" onclick="closeReward()">收下榮耀</button>
+        </div>
     </div>
 
+    <footer>v9.1 STABLE | RAILWAY SURVIVOR</footer>
+
     <script>
+        // ── 數據定義 ──
         const STATIONS = ["瑞芳","侯硐","十分","平溪","菁桐","內灣","三義","三坑","集集","車埕"];
         const TASK_POOL = [
-            {t:"拍一張車站外最吸引人的招牌", p:150, i:"📸", c:"景觀"},
-            {t:"捕捉火車進站的瞬間", p:200, i:"🚆", c:"鐵道"},
-            {t:"買一份當地特色點心並記錄價格", p:120, i:"🍱", c:"美食"},
-            {t:"錄製一段車站環境音(10秒)", p:150, i:"🎧", c:"聽覺"},
-            {t:"與站牌合照，做出指定姿勢", p:180, i:"🙋", c:"互動"},
-            {t:"找到車站最古老的角落", p:200, i:"🔍", c:"歷史"},
-            {t:"尋找附近地圖上沒寫的小路", p:250, i:"🗺️", c:"冒險"}
+            {t:"拍下車站獨有的建築構造", p:150, i:"📸", c:"景觀"},
+            {t:"錄製一段火車離站的聲音", p:200, i:"🎧", c:"聽覺"},
+            {t:"尋找當地最老的店鋪招牌", p:120, i:"🪧", c:"文化"},
+            {t:"描述車站當下的氣味並紀錄", p:100, i:"👃", c:"感官"},
+            {t:"與車站名稱合照(指定姿勢)", p:150, i:"🙋", c:"互動"},
+            {t:"買一份當地限定點心拍照", p:130, i:"🍱", c:"美食"},
+            {t:"找到地圖沒標示的隱藏景點", p:250, i:"🔍", c:"探險"}
+        ];
+        const TITLES = [
+            {min:0, name:"初級冒險者"},
+            {min:800, name:"鐵道步行者"},
+            {min:2000, name:"支線觀察員"},
+            {min:5000, name:"黃金導航長"},
+            {min:10000, name:"傳奇鐵道大師"}
         ];
 
+        // ── 系統狀態 ──
         let state = {
             user: localStorage.getItem('v9_user') || "",
             pts: parseInt(localStorage.getItem('v9_pts')) || 0,
-            lv: 1, title: "菜鳥探險家",
-            history: JSON.parse(localStorage.getItem('v9_hist')) || [],
+            title: localStorage.getItem('v9_title') || "初級冒險者",
             currentStation: null, log: [],
             angle: 0, speed: 0, status: "IDLE"
         };
 
-        const TITLES = [
-            { min: 0, name: "菜鳥探險家" },
-            { min: 1000, name: "鐵道愛好者" },
-            { min: 3000, name: "月台生存專家" },
-            { min: 6000, name: "黃金導航長" },
-            { min: 10000, name: "傳奇鐵道大師" }
-        ];
+        // ── 初始化 ──
+        function init() {
+            if(state.user) {
+                document.getElementById('setupOverlay').classList.add('hide');
+                document.getElementById('userNameInput').value = state.user;
+            }
+            updateUI();
+            drawWheel();
+            requestAnimationFrame(animateLoop);
+        }
 
         function unlock() {
-            const n = document.getElementById('userNameInput').value;
-            const p = document.getElementById('passInput').value;
-            if(n && p === "2026") {
-                state.user = n; localStorage.setItem('v9_user', n);
-                document.getElementById('setupOverlay').classList.add('hide');
-                updateUI();
-            }
+            const n = document.getElementById('userNameInput').value.trim();
+            const p = document.getElementById('passInput').value.trim();
+            if(!n) return alert("請輸入代號");
+            if(p !== "2026") return alert("密語錯誤");
+            
+            state.user = n;
+            localStorage.setItem('v9_user', n);
+            document.getElementById('setupOverlay').classList.add('hide');
+            updateUI();
         }
 
+        // ── 轉盤邏輯 ──
         function spin() {
-            if(state.status === "IDLE") { state.status = "SPINNING"; state.speed = 0.3; }
-            else if(state.status === "SPINNING") { state.status = "SLOWING"; }
+            if(state.status === "IDLE") {
+                state.status = "SPINNING";
+                state.speed = 0.25 + Math.random() * 0.1;
+                document.getElementById('spinBtn').innerText = "🛑 停止";
+            } else if(state.status === "SPINNING") {
+                state.status = "SLOWING";
+                document.getElementById('spinBtn').innerText = "進站中...";
+            }
         }
 
-        function animate() {
-            if(state.status === "SPINNING") state.angle += state.speed;
-            else if(state.status === "SLOWING") {
-                state.angle += state.speed; state.speed *= 0.985;
-                if(state.speed < 0.002) { state.status = "IDLE"; finalizeSpin(); }
+        function animateLoop() {
+            if(state.status === "SPINNING") {
+                state.angle += state.speed;
+            } else if(state.status === "SLOWING") {
+                state.angle += state.speed;
+                state.speed *= 0.985;
+                if(state.speed < 0.002) {
+                    state.status = "IDLE";
+                    onSpinStop();
+                }
             }
-            drawWheel(); requestAnimationFrame(animate);
+            drawWheel();
+            requestAnimationFrame(animateLoop);
         }
 
         function drawWheel() {
-            const canvas = document.getElementById('wheelCanvas');
-            const ctx = canvas.getContext('2d');
-            const slice = (Math.PI*2) / STATIONS.length;
+            const ctx = document.getElementById('wheelCanvas').getContext('2d');
+            const slice = (Math.PI * 2) / STATIONS.length;
             ctx.clearRect(0,0,300,300);
+            
             for(let i=0; i<STATIONS.length; i++) {
-                const s = state.angle + i*slice - Math.PI/2;
+                const s = state.angle + i * slice - Math.PI/2;
                 ctx.beginPath(); ctx.moveTo(150,150); ctx.arc(150,150,140,s,s+slice);
-                ctx.fillStyle = i%2 ? "#c8960a" : "#f0c840"; ctx.fill();
+                ctx.fillStyle = i % 2 ? "#c8960a" : "#f0c840";
+                ctx.fill(); ctx.stroke();
+                
+                // 蓋牌邏輯：轉動時顯示「?」，停下後顯示名稱
                 ctx.save(); ctx.translate(150,150); ctx.rotate(s + slice/2);
-                ctx.textAlign="right"; ctx.fillStyle="black"; ctx.font="900 14px serif";
-                ctx.fillText("❓隱藏", 130, 5); ctx.restore();
+                ctx.textAlign = "right"; ctx.fillStyle = "black"; ctx.font = "900 16px serif";
+                ctx.fillText("❓", 130, 8);
+                ctx.restore();
             }
         }
 
-        function finalizeSpin() {
-            const slice = (Math.PI*2) / STATIONS.length;
+        function onSpinStop() {
+            const slice = (Math.PI * 2) / STATIONS.length;
             const norm = ((-state.angle % (Math.PI*2)) + (Math.PI*2)) % (Math.PI*2);
-            state.currentStation = STATIONS[Math.floor(norm/slice) % STATIONS.length];
+            state.currentStation = STATIONS[Math.floor(norm / slice) % STATIONS.length];
+            
             setTimeout(() => {
                 document.getElementById('phaseSpin').classList.add('hide');
                 document.getElementById('phaseTask').classList.remove('hide');
                 document.getElementById('stationName').innerText = state.currentStation;
                 spawnMissions();
-            }, 500);
+            }, 600);
         }
 
+        // ── 任務邏輯 ──
         function spawnMissions() {
             const grid = document.getElementById('missionGrid');
             grid.innerHTML = '';
-            // 隨機抽取三個任務
-            const tasks = [...TASK_POOL].sort(() => 0.5 - Math.random()).slice(0,3);
-            tasks.forEach(task => {
-                const el = document.createElement('div');
-                el.className = 'mystery-card';
-                el.innerHTML = `
+            const tasks = [...TASK_POOL].sort(() => 0.5 - Math.random()).slice(0, 3);
+            
+            tasks.forEach((task, idx) => {
+                const card = document.createElement('div');
+                card.className = 'mystery-card';
+                card.innerHTML = `
                     <div class="card-inner">
                         <div class="card-back">📦</div>
                         <div class="card-front">
-                            <span class="cat-tag">${task.c}</span>
-                            <div class="task-title">${task.t}</div>
-                            <div style="font-weight:900; color:var(--gold); font-size:0.7rem;">+${task.p}P</div>
-                            <button class="btn btn-done" onclick="finishTask('${task.t}', ${task.p}, event)">✅ 完成</button>
+                            <span class="task-cat">${task.c}</span>
+                            <div class="task-text">${task.t}</div>
+                            <div style="color:var(--gold); font-weight:900; font-size:0.7rem;">+${task.p}P</div>
+                            <button class="btn-done" onclick="completeTask('${task.t}', ${task.p}, event)">完成</button>
                         </div>
                     </div>`;
-                el.onclick = function() { this.classList.add('flipped'); };
-                grid.appendChild(el);
+                card.onclick = function() { this.classList.add('flipped'); };
+                grid.appendChild(card);
             });
         }
 
-        function finishTask(title, p, e) {
+        function completeTask(title, p, e) {
             e.stopPropagation();
             const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            state.log.push(`[${time}] ${title} (+${p}P)`);
+            state.log.push({ time, title, p });
             state.pts += p;
-            alert("任務成功！");
+            alert(`完成任務！獲得 ${p}P`);
             updateUI();
-            checkTitle();
+            checkTitleUpdate();
         }
 
-        function checkTitle() {
+        // ── 遊記生成 ──
+        function generateNote() {
+            const weather = document.getElementById('weatherSelect').value;
+            let note = `【鐵道冒險紀錄】\n站點：${state.currentStation}\n天氣：${weather}\n冒險者：${state.user} (${state.title})\n\n任務軌跡：\n`;
+            
+            if(state.log.length === 0) {
+                note += "在月台觀察火車動態，享受靜謐時光。";
+            } else {
+                state.log.forEach(l => {
+                    note += `● [${l.time}] ${l.title} (+${l.p}P)\n`;
+                });
+            }
+            
+            note += `\n本次總計獲得：${state.log.reduce((a,b)=>a+b.p, 0)} P\n系統時間：${new Date().toLocaleString()}`;
+            
+            // 存入紀錄 (僅展示 alert，可改為儲存到 localStorage)
+            console.log(note);
+            alert("遊記已生成！(已輸出至控制台)\n系統將重新啟動。");
+            localStorage.setItem('v9_pts', state.pts);
+            location.reload();
+        }
+
+        // ── UI 更新 ──
+        function updateUI() {
+            document.getElementById('ui-name').innerText = state.user;
+            document.getElementById('ui-pts').innerText = state.pts;
+            document.getElementById('ui-lv').innerText = Math.floor(state.pts / 800) + 1;
+            document.getElementById('ui-title').innerText = state.title;
+        }
+
+        function checkTitleUpdate() {
             const newT = [...TITLES].reverse().find(t => state.pts >= t.min).name;
             if(newT !== state.title) {
                 state.title = newT;
-                document.getElementById('newTitle').innerText = newT;
-                document.getElementById('rewardPopup').style.display = 'block';
+                localStorage.setItem('v9_title', newT);
+                document.getElementById('newTitleLabel').innerText = newT;
+                document.getElementById('rewardPopup').style.display = 'flex';
                 updateUI();
             }
         }
 
-        function settle() {
-            const weather = document.getElementById('weatherSelect').value;
-            const summary = `【冒險者遊記】\n站點：${state.currentStation}\n天氣：${weather}\n代號：${state.user}\n稱號：${state.title}\n\n任務軌跡：\n${state.log.join('\n')}\n\n結算：獲得新里程碑。`;
-            
-            state.history.unshift({ date: new Date().toLocaleDateString(), content: summary });
-            localStorage.setItem('v9_hist', JSON.stringify(state.history));
-            localStorage.setItem('v9_pts', state.pts);
-            
-            alert("遊記已生成！回到轉盤。");
-            location.reload(); // 簡單重置
+        function closeReward() {
+            document.getElementById('rewardPopup').style.display = 'none';
         }
 
-        function updateUI() {
-            document.getElementById('ui-name').innerText = state.user;
-            document.getElementById('ui-pts').innerText = state.pts;
-            document.getElementById('ui-lv').innerText = Math.floor(state.pts/800) + 1;
-            document.getElementById('ui-title').innerText = state.title;
-        }
-
-        animate();
-        updateUI();
+        window.onload = init;
     </script>
 </body>
 </html>
